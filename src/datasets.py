@@ -25,7 +25,8 @@ class Synth90k(Dataset):
                  buffer_size=536870912,
                  stop_grad=True,
                  keep_numpy_array=False,
-                 endless=False):
+                 endless=False,
+                 predict=False):
         super().__init__(batch_size=batch_size,
                          shuffle=shuffle,
                          drop_last=drop_last,
@@ -44,6 +45,7 @@ class Synth90k(Dataset):
         self.texts = texts
         self.img_height = img_height
         self.img_width = img_width
+        self.predict = predict
 
     def _load_from_raw_files(self, root_dir, mode):
         mapping = {}
@@ -97,13 +99,15 @@ class Synth90k(Dataset):
         else:
             return image
 
-
     def collate_batch(self, batch):
+        if self.predict:
+            return super().collate_batch(batch)
+
         images, targets, target_lengths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
-        
+
         max_target_length = target_lengths.max()
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
