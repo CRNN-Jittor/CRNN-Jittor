@@ -15,7 +15,6 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
     tot_count = 0
     tot_loss = 0
     tot_correct = 0
-    wrong_cases = []
 
     pbar_total = max_iter if max_iter else len(dataset)
     pbar = tqdm(total=pbar_total, desc="Evaluate")
@@ -41,19 +40,15 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
 
             tot_count += batch_size
             tot_loss += loss.item()
-            target_length_counter = 0
-            for pred, target_length in zip(preds, target_lengths):
-                real = reals[target_length_counter:target_length_counter + target_length]
-                target_length_counter += target_length
+            for pred, real, target_length in zip(preds, reals, target_lengths):
+                real = real[:target_length]
                 if pred == real:
                     tot_correct += 1
-                else:
-                    wrong_cases.append((real, pred))
 
             pbar.update(1)
         pbar.close()
 
-    evaluation = {'loss': tot_loss / tot_count, 'acc': tot_correct / tot_count, 'wrong_cases': wrong_cases}
+    evaluation = {'loss': tot_loss / tot_count, 'acc': tot_correct / tot_count}
     return evaluation
 
 
