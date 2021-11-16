@@ -100,6 +100,7 @@ def main():
                 evaluation = evaluate(crnn,
                                       valid_dataset,
                                       criterion,
+                                      max_iter=valid_max_iter,
                                       decode_method=config['decode_method'],
                                       beam_size=config['beam_size'])
                 print('valid_evaluation: loss={loss}, acc={acc}'.format(**evaluation))

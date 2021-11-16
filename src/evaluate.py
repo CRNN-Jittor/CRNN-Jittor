@@ -16,10 +16,9 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
     tot_loss = 0
     tot_correct = 0
 
-    pbar_total = max_iter if max_iter else len(dataset)
-    pbar = tqdm(total=pbar_total, desc="Evaluate")
-
     with jt.no_grad():
+        pbar_total = max_iter if max_iter else len(dataset)
+        pbar = tqdm(total=pbar_total, desc="Evaluate")
         for i, data in enumerate(dataset):
             if max_iter and i >= max_iter:
                 break
