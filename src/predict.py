@@ -20,14 +20,12 @@ from ctc_decoder import ctc_decode
 
 def predict(crnn, dataset, label2char, decode_method, beam_size):
     crnn.eval()
-    pbar = tqdm(total=len(dataset), desc="Predict")
 
     all_preds = []
     with jt.no_grad():
+        pbar = tqdm(total=len(dataset), desc="Predict")
         for data in dataset:
-            images = data
-
-            logits = crnn(images)
+            logits = crnn(data)
             log_probs = nn.log_softmax(logits, dim=2)
 
             preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size, label2char=label2char)

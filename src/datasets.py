@@ -83,7 +83,7 @@ class Synth90k(Dataset):
         image = jt.float32(image)
         if self.texts:
             text = self.texts[index]
-            target = [self.CHAR2LABEL[c] for c in text]
+            target = [CHAR2LABEL[c] for c in text]
             target_length = [len(target)]
 
             target = jt.int64(target)
