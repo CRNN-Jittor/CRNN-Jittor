@@ -13,7 +13,7 @@ import jittor as jt
 from jittor import nn
 
 from config import common_config as config
-from datasets import Synth90k
+from datasets import PredictDataset, LABEL2CHAR
 from model import CRNN
 from ctc_decoder import ctc_decode
 
@@ -57,6 +57,7 @@ def main():
 
     img_height = config['img_height']
     img_width = config['img_width']
+    cpu_workers = config['cpu_workers']
 
     try:
         jt.flags.use_cuda = 1
@@ -64,14 +65,14 @@ def main():
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
 
-    predict_dataset = Synth90k(paths=images,
-                               img_height=img_height,
-                               img_width=img_width,
-                               batch_size=batch_size,
-                               shuffle=False,
-                               predict=True)
+    predict_dataset = PredictDataset(img_paths=images,
+                                     img_height=img_height,
+                                     img_width=img_width,
+                                     batch_size=batch_size,
+                                     shuffle=False,
+                                     num_workers=cpu_workers)
 
-    num_class = len(Synth90k.LABEL2CHAR) + 1
+    num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1,
                 img_height,
                 img_width,
@@ -81,12 +82,11 @@ def main():
                 leaky_relu=config['leaky_relu'])
     if reload_checkpoint[-3:] == ".pt":
         import torch
-        device = "cuda" if jt.flags.use_cuda == 1 else "cpu"
-        crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
+        crnn.load_state_dict(torch.load(reload_checkpoint, map_location="cpu"))
     else:
         crnn.load(reload_checkpoint)
 
-    preds = predict(crnn, predict_dataset, Synth90k.LABEL2CHAR, decode_method=decode_method, beam_size=beam_size)
+    preds = predict(crnn, predict_dataset, LABEL2CHAR, decode_method=decode_method, beam_size=beam_size)
 
     show_result(images, preds)
 

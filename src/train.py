@@ -4,7 +4,7 @@ import jittor as jt
 from jittor import nn
 from jittor import optim
 
-from datasets import Synth90k
+from datasets import Synth90k, LABEL2CHAR
 from model import CRNN
 from evaluate import evaluate
 from config import train_config as config
@@ -56,14 +56,14 @@ def main():
                              shuffle=True,
                              num_workers=cpu_workers)
     valid_dataset = Synth90k(root_dir=data_dir,
-                             mode='dev',
+                             mode='valid',
                              img_height=img_height,
                              img_width=img_width,
                              batch_size=eval_batch_size,
                              shuffle=True,
                              num_workers=cpu_workers)
 
-    num_class = len(Synth90k.LABEL2CHAR) + 1
+    num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1,
                 img_height,
                 img_width,
@@ -74,7 +74,7 @@ def main():
     if reload_checkpoint:
         if reload_checkpoint[-3:] == ".pt":
             import torch
-            crnn.load_state_dict(torch.load(reload_checkpoint))
+            crnn.load_state_dict(torch.load(reload_checkpoint, map_location="cpu"))
         else:
             crnn.load(reload_checkpoint)
 

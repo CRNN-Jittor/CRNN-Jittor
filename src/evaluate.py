@@ -3,13 +3,13 @@ from jittor import nn
 
 from tqdm import tqdm
 
-from datasets import Synth90k
+from datasets import Synth90k, LABEL2CHAR
 from model import CRNN
 from ctc_decoder import ctc_decode
 from config import evaluate_config as config
 
 
-def evaluate(crnn, dataloader, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
+def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
     crnn.eval()
 
     tot_count = 0
@@ -17,11 +17,11 @@ def evaluate(crnn, dataloader, criterion, max_iter=None, decode_method='beam_sea
     tot_correct = 0
     wrong_cases = []
 
-    pbar_total = max_iter if max_iter else len(dataloader)
+    pbar_total = max_iter if max_iter else len(dataset)
     pbar = tqdm(total=pbar_total, desc="Evaluate")
 
     with jt.no_grad():
-        for i, data in enumerate(dataloader):
+        for i, data in enumerate(dataset):
             if max_iter and i >= max_iter:
                 break
 
@@ -79,7 +79,7 @@ def main():
                             shuffle=False,
                             num_workers=cpu_workers)
 
-    num_class = len(Synth90k.LABEL2CHAR) + 1
+    num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1,
                 img_height,
                 img_width,
@@ -89,7 +89,7 @@ def main():
                 leaky_relu=config['leaky_relu'])
     if reload_checkpoint[-3:] == ".pt":
         import torch
-        crnn.load_state_dict(torch.load(reload_checkpoint))
+        crnn.load_state_dict(torch.load(reload_checkpoint, map_location="cpu"))
     else:
         crnn.load(reload_checkpoint)
 
