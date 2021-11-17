@@ -33,7 +33,7 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
 
             loss = criterion(log_probs, targets, input_lengths, target_lengths)
 
-            preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size)
+            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size)
             reals = targets.numpy().tolist()
             target_lengths = target_lengths.numpy().tolist()
 

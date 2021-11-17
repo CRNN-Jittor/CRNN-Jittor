@@ -7,30 +7,24 @@ NINF = -1 * float('inf')
 DEFAULT_EMISSION_THRESHOLD = 0.01
 
 
-def _reconstruct(labels, blank=0):
+def _reconstruct(labels, blank):
     new_labels = []
-    # merge same labels
-    previous = None
+    # merge same labels and remove blanks
+    previous = -1
     for l in labels:
-        if l != previous:
+        if l != blank and l != previous:
             new_labels.append(l)
-            previous = l
-    # delete blank
-    new_labels = [l for l in new_labels if l != blank]
-
+        previous = l
     return new_labels
 
 
-def greedy_decode(emission_log_prob, blank=0, **kwargs):
+def greedy_decode(emission_log_prob, blank, **kwargs):
     labels = np.argmax(emission_log_prob, axis=-1)
-    labels = _reconstruct(labels, blank=blank)
+    labels = _reconstruct(labels.tolist(), blank=blank)
     return labels
 
 
-def beam_search_decode(emission_log_prob, blank=0, **kwargs):
-    beam_size = kwargs['beam_size']
-    emission_threshold = kwargs.get('emission_threshold', np.log(DEFAULT_EMISSION_THRESHOLD))
-
+def beam_search_decode(emission_log_prob, blank, beam_size, emission_threshold=np.log(DEFAULT_EMISSION_THRESHOLD)):
     length, class_count = emission_log_prob.shape
 
     beams = [([], 0)]  # (prefix, accumulated_log_prob)
@@ -53,7 +47,7 @@ def beam_search_decode(emission_log_prob, blank=0, **kwargs):
     # sum up beams to produce labels
     total_accu_log_prob = {}
     for prefix, accu_log_prob in beams:
-        labels = tuple(_reconstruct(prefix))
+        labels = tuple(_reconstruct(prefix, blank))
         # log(p1 + p2) = logsumexp([log_p1, log_p2])
         total_accu_log_prob[labels] = \
             logsumexp([accu_log_prob, total_accu_log_prob.get(labels, NINF)])
@@ -65,10 +59,7 @@ def beam_search_decode(emission_log_prob, blank=0, **kwargs):
     return labels
 
 
-def prefix_beam_decode(emission_log_prob, blank=0, **kwargs):
-    beam_size = kwargs['beam_size']
-    emission_threshold = kwargs.get('emission_threshold', np.log(DEFAULT_EMISSION_THRESHOLD))
-
+def prefix_beam_decode(emission_log_prob, blank, beam_size, emission_threshold=np.log(DEFAULT_EMISSION_THRESHOLD)):
     length, class_count = emission_log_prob.shape
 
     beams = [(tuple(), (0, NINF))]  # (prefix, (blank_log_prob, non_blank_log_prob))
@@ -112,7 +103,7 @@ def prefix_beam_decode(emission_log_prob, blank=0, **kwargs):
 
 
 def ctc_decode(log_probs, label2char=None, blank=0, method='beam_search', beam_size=10):
-    emission_log_probs = np.transpose(log_probs.numpy(), (1, 0, 2))
+    emission_log_probs = log_probs.transpose(1, 0, 2)
     # size of emission_log_probs: (batch, length, class)
 
     decoders = {
