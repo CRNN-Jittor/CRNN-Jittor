@@ -233,3 +233,15 @@ class IIIT5K(Dataset):
             return image, target, target_length
         else:
             return image
+
+    def collate_batch(self, batch):
+        images, targets, target_lengths = zip(*batch)
+        images = jt.stack(images, dim=0)
+
+        target_lengths = jt.concat(target_lengths, dim=0)
+
+        max_target_length = target_lengths.max()
+        targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
+        targets = jt.stack(targets, dim=0)
+
+        return images, targets, target_lengths
