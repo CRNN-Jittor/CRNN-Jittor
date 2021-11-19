@@ -1,6 +1,6 @@
 common_config = {
-    'data_dir': '../data/Synth90k/',
-    'test_dir': '../data/',
+    'data_dir': 'data/Synth90k/',
+    'test_dir': 'data/',
     'img_width': 100,
     'img_height': 32,
     'map_to_seq_hidden': 64,
@@ -21,13 +21,13 @@ train_config = {
     'valid_max_iter': 100,
     'decode_method': 'greedy',
     'beam_size': 10,
-    'checkpoints_dir': '../checkpoints/'
+    'checkpoints_dir': 'checkpoints/'
 }
 train_config.update(common_config)
 
 evaluate_config = {
     'eval_batch_size': 512,
-    'reload_checkpoint': '../checkpoints/crnn_synth90k.pt',
+    'reload_checkpoint': 'checkpoints/crnn_synth90k.pt',
     'decode_method': 'beam_search',
     'beam_size': 10,
 }
