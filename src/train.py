@@ -10,7 +10,7 @@ from evaluate import evaluate
 from config import train_config as config
 
 
-def train_batch(crnn, data, optimizer, criterion, device):
+def train_batch(crnn, data, optimizer, criterion):
     crnn.train()
     images, targets, target_lengths = [d for d in data]
 
