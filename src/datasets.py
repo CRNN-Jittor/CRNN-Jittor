@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 from scipy.io import loadmat
 
-CHARS = '0123456789abcdefghijklmnopqrstuvwxyz'
+CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 CHAR2LABEL = {char: i + 1 for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 
@@ -203,7 +203,7 @@ class IIIT5K(Dataset):
         for i in range(len(data_dict)):
             path = data_dict[i]['ImgName']
             path = os.path.join(root_dir, path[0])
-            text = data_dict[i]['GroundTruth'][0]
+            text = str(data_dict[i]['GroundTruth'][0])
             paths.append(path)
             texts.append(text)
         return paths, texts
