@@ -1,5 +1,5 @@
 common_config = {
-    'data_dir': '../data/mnt/ramdisk/max/90kDICT32px/',
+    'data_dir': '../data/Synth90k/',
     'test_dir': '../data/',
     'img_width': 100,
     'img_height': 32,

@@ -86,14 +86,13 @@ def main():
                                 num_workers=cpu_workers)
     else:
         data_dir = os.path.join(config['test_dir'], dataset_name)
-        test_dataset = eval(dataset_name)(
-                                root_dir=data_dir,
-                                mode='test',
-                                img_height=img_height,
-                                img_width=img_width,
-                                batch_size=eval_batch_size,
-                                shuffle=False,
-                                num_workers=cpu_workers)
+        test_dataset = eval(dataset_name)(root_dir=data_dir,
+                                          mode='test',
+                                          img_height=img_height,
+                                          img_width=img_width,
+                                          batch_size=eval_batch_size,
+                                          shuffle=False,
+                                          num_workers=cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1,
