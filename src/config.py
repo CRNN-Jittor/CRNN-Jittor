@@ -1,7 +1,6 @@
-import sys
 import os
 
-curr_path = sys.path[0]
+curr_path = os.path.dirname(__file__)
 
 common_config = {
     'data_dir': os.path.join(curr_path, '../data/Synth90k/'),
