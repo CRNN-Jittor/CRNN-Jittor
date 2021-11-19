@@ -179,7 +179,7 @@ class IIIT5K(Dataset):
 
     def _load_from_raw_files(self, root_dir, mode):
         mapping = {}
-        with open(os.path.join(root_dir, 'lexicon.txt'), 'r') as fr:
+        with open(os.path.join(root_dir, 'lexicon.txt'), 'r', encoding='ISO-8859-1') as fr:
             for i, line in enumerate(fr.readlines()):
                 mapping[i] = line.strip()
 
