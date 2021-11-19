@@ -202,8 +202,8 @@ class IIIT5K(Dataset):
         data_dict = data_dict[dataset][0]
         for i in range(len(data_dict)):
             path = data_dict[i]['ImgName']
-            path = os.path.join(root_dir, mode, path)
-            text = data_dict[i]['GroundTruth']
+            path = os.path.join(root_dir, path[0])
+            text = data_dict[i]['GroundTruth'][0]
             paths.append(path)
             texts.append(text)
         return paths, texts
