@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 from scipy.io import loadmat
 
-CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+CHARS = '0123456789abcdefghijklmnopqrstuvwxyz'
 CHAR2LABEL = {char: i + 1 for i, char in enumerate(CHARS)}
 LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 
@@ -178,11 +178,6 @@ class IIIT5K(Dataset):
         self.img_width = img_width
 
     def _load_from_raw_files(self, root_dir, mode):
-        mapping = {}
-        with open(os.path.join(root_dir, 'lexicon.txt'), 'r', encoding='ISO-8859-1') as fr:
-            for i, line in enumerate(fr.readlines()):
-                mapping[i] = line.strip()
-
         paths_file = None
         dataset = None
         if mode == 'train':
@@ -203,7 +198,7 @@ class IIIT5K(Dataset):
         for i in range(len(data_dict)):
             path = data_dict[i]['ImgName']
             path = os.path.join(root_dir, path[0])
-            text = str(data_dict[i]['GroundTruth'][0])
+            text = str(data_dict[i]['GroundTruth'][0]).lower()
             paths.append(path)
             texts.append(text)
         return paths, texts
