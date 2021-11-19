@@ -1,9 +1,11 @@
 import jittor as jt
+import os
+import argparse
 from jittor import nn
 
 from tqdm import tqdm
 
-from datasets import Synth90k, LABEL2CHAR
+from datasets import LABEL2CHAR, Synth90k, IIIT5K
 from model import CRNN
 from ctc_decoder import ctc_decode
 from config import evaluate_config as config
@@ -52,6 +54,15 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    # usage: python3 evaluate.py [-d] <dataset>
+    parser.add_argument("-d", "--dataset", type=str, help="specify the dataset for evaluation")
+    args = parser.parse_args()
+    if not args.dataset:
+        print("Please specify the dataset")
+        return 0
+    dataset_name = str(args.dataset)
+
     eval_batch_size = config['eval_batch_size']
     cpu_workers = config['cpu_workers']
     reload_checkpoint = config['reload_checkpoint']
@@ -65,13 +76,24 @@ def main():
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
 
-    test_dataset = Synth90k(root_dir=config['data_dir'],
-                            mode='test',
-                            img_height=img_height,
-                            img_width=img_width,
-                            batch_size=eval_batch_size,
-                            shuffle=False,
-                            num_workers=cpu_workers)
+    if dataset_name == "Synth90k":
+        test_dataset = Synth90k(root_dir=config['data_dir'],
+                                mode='test',
+                                img_height=img_height,
+                                img_width=img_width,
+                                batch_size=eval_batch_size,
+                                shuffle=False,
+                                num_workers=cpu_workers)
+    else:
+        data_dir = os.path.join(config['test_dir'], dataset_name)
+        test_dataset = eval(dataset_name)(
+                                root_dir=data_dir,
+                                mode='test',
+                                img_height=img_height,
+                                img_width=img_width,
+                                batch_size=eval_batch_size,
+                                shuffle=False,
+                                num_workers=cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1,

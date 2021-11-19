@@ -1,10 +1,12 @@
 import os
 
 import jittor as jt
+import jittor_utils
 from jittor.dataset import Dataset
 
 from PIL import Image
 import numpy as np
+from scipy.io import loadmat
 
 CHARS = '0123456789abcdefghijklmnopqrstuvwxyz'
 CHAR2LABEL = {char: i + 1 for i, char in enumerate(CHARS)}
@@ -147,3 +149,88 @@ class PredictDataset(Dataset):
 
         image = jt.float32(image)
         return image
+
+class IIIT5K(Dataset):
+    def __init__(self,
+                 root_dir,
+                 mode,
+                 img_height=32,
+                 img_width=100,
+                 batch_size=16,
+                 shuffle=False,
+                 drop_last=False,
+                 num_workers=0,
+                 buffer_size=536870912,
+                 stop_grad=True,
+                 keep_numpy_array=False,
+                 endless=False):
+        super().__init__(batch_size=batch_size,
+                         shuffle=shuffle,
+                         drop_last=drop_last,
+                         num_workers=num_workers,
+                         buffer_size=buffer_size,
+                         stop_grad=stop_grad,
+                         keep_numpy_array=keep_numpy_array,
+                         endless=endless)
+        self.img_paths, self.texts = self.load_from_raw_files(root_dir, mode)
+        self.total_len = len(self.img_paths)
+        self.img_height = img_height
+        self.img_width = img_width
+
+        def load_from_raw_files(self, root_dir, mode):
+            mapping = {}
+            with open(os.path.join(root_dir, 'lexicon.txt'), 'r') as fr:
+                for i, line in enumerate(fr.readlines()):
+                    mapping[i] = line.strip()
+
+            paths_file = None
+            dataset = None
+            if mode == 'train':
+                paths_file = 'traindata.mat'
+                dataset = 'traindata'
+            elif mode == 'test':
+                paths_file = 'testdata.mat'
+                dataset = 'testdata'
+            else:
+                raise RuntimeError("Unknown mode")
+
+            paths = []
+            texts = []
+
+            paths_file = os.path.join(root_dir, paths_file)
+            data_dict = loadmat(paths_file)
+            data_dict = data_dict[dataset][0]
+            for i in range(len(data_dict)):
+                path = data_dict[i]['ImgName']
+                path = os.path.join(root_dir, mode, path)
+                text = data_dict[i]['GroundTruth']
+                paths.append(path)
+                texts.append(text)
+
+            return paths, texts
+
+        def __getitem__(self, index):
+            img_path = self.img_paths[index]
+
+            try:
+                image = Image.open(img_path).convert('L')  # grey-scale
+            except IOError:
+                print('Corrupted image for %d' % index)
+                return self[index + 1]
+
+            image = image.resize((self.img_width, self.img_height), resample=Image.BILINEAR)
+            image = np.array(image)
+            image = image.reshape((1, self.img_height, self.img_width))
+            image = (image / 127.5) - 1.0
+
+            image = jt.float32(image)
+            if self.texts:
+                text = self.texts[index]
+                target = [CHAR2LABEL[c] for c in text]
+                target_length = [len(target)]
+
+                target = jt.int64(target)
+                target_length = jt.int64(target_length)
+                return image, target, target_length
+            else:
+                return image

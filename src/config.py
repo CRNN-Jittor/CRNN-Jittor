@@ -1,5 +1,6 @@
 common_config = {
     'data_dir': 'data/mnt/ramdisk/max/90kDICT32px/',
+    'test_dir': 'data/mnt/ramdisk/dataset',
     'img_width': 100,
     'img_height': 32,
     'map_to_seq_hidden': 64,
