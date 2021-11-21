@@ -283,7 +283,7 @@ class IC03(Dataset):
             imageNames = soup.select('imageName')
             taggedRectangles_list = soup.select('taggedRectangles')
             for idx in range(len(imageNames)):
-                imageName = imageNames[idx]
+                imageName = str(imageNames[idx].text)
                 image_path = os.path.join(root_dir, imageName)
                 taggedRectangles = taggedRectangles_list[idx]
                 taggedRectangle = taggedRectangles.select('taggedrectangle')
