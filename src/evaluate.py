@@ -5,7 +5,7 @@ from jittor import nn
 
 from tqdm import tqdm
 
-from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03
+from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03, IC13
 from model import CRNN
 from ctc_decoder import ctc_decode
 from config import evaluate_config as config

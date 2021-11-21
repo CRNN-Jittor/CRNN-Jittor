@@ -1,4 +1,5 @@
 import os
+import re
 
 import jittor as jt
 import jittor_utils
@@ -242,6 +243,111 @@ class IIIT5K(Dataset):
 
         return images, targets, target_lengths
 
+
+class IC13(Dataset):
+    def __init__(self,
+                 root_dir,
+                 mode,
+                 img_height=32,
+                 img_width=100,
+                 batch_size=16,
+                 shuffle=False,
+                 drop_last=False,
+                 num_workers=0,
+                 buffer_size=536870912,
+                 stop_grad=True,
+                 keep_numpy_array=False,
+                 endless=False):
+        super().__init__(batch_size=batch_size,
+                         shuffle=shuffle,
+                         drop_last=drop_last,
+                         num_workers=num_workers,
+                         buffer_size=buffer_size,
+                         stop_grad=stop_grad,
+                         keep_numpy_array=keep_numpy_array,
+                         endless=endless)
+        self.img_paths, self.sections, self.texts = self._load_from_raw_files(root_dir, mode)
+        self.total_len = len(self.img_paths)
+        self.img_height = img_height
+        self.img_width = img_width
+
+    def _load_from_raw_files(self, root_dir, mode):
+
+        image_paths = []
+        sections = []
+        texts = []
+        images_dir = ""
+        gt_dir = ""
+
+        if mode == 'train':
+            images_dir = os.path.join(root_dir, "Challenge2_Training_Task12_Images")
+            gt_dir = os.path.join(root_dir, "Challenge2_Training_Task1_GT")
+        elif mode == 'test':
+            images_dir = os.path.join(root_dir, "Challenge2_Test_Task12_Images")
+            gt_dir = os.path.join(root_dir, "Challenge2_Test_Task1_GT")
+
+        for root, dirs, files in os.walk(gt_dir):
+            for file in files:
+                imgName = file[3:-4]
+                imgName += '.jpg'
+                gt_file = os.path.join(root, file)
+                img_path = os.path.join(images_dir, imgName)
+                with open(gt_file, 'r') as fr:
+                    pattern = re.compile(r'(.*),(.*),(.*),(.*), "(.*)"')
+                    lines = fr.readlines()
+                    for line in lines:
+                        res = pattern.match(line).groups()
+                        x = int(str(res[0]).strip())
+                        y = int(str(res[1]).strip())
+                        width = int(str(res[2]).strip())
+                        height = int(str(res[3]).strip())
+                        tag = str(res[4]).strip().lower()
+                        image_paths.append(img_path)
+                        sections.append({"x": x, "y": y, "width": width, "height": height})
+                        texts.append(tag)
+
+        return image_paths, sections, texts
+
+    def __getitem__(self, index):
+        img_path = self.img_paths[index]
+        section = self.sections[index]
+        try:
+            image = Image.open(img_path).convert('L')  # grey-scale
+            box = (section['x'], section['y'], section['x'] + section['width'],
+                   section['y'] + section['height'])
+            image = image.crop(box)
+        except IOError:
+            print('Corrupted image for %d' % index)
+            return self[index + 1]
+
+        image = image.resize((self.img_width, self.img_height), resample=Image.BILINEAR)
+        image = np.array(image)
+        image = image.reshape((1, self.img_height, self.img_width))
+        image = (image / 127.5) - 1.0
+
+        image = jt.float32(image)
+        if self.texts:
+            text = self.texts[index]
+            target = [CHAR2LABEL[c] for c in text if c in CHARS]
+            target_length = [len(target)]
+
+            target = jt.int64(target)
+            target_length = jt.int64(target_length)
+            return image, target, target_length
+        else:
+            return image
+
+    def collate_batch(self, batch):
+        images, targets, target_lengths = zip(*batch)
+        images = jt.stack(images, dim=0)
+
+        target_lengths = jt.concat(target_lengths, dim=0)
+
+        max_target_length = target_lengths.max()
+        targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
+        targets = jt.stack(targets, dim=0)
+
+        return images, targets, target_lengths
 
 class IC03(Dataset):
     def __init__(self,
