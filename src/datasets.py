@@ -277,6 +277,7 @@ class IC03(Dataset):
         texts = []
 
         paths_file = os.path.join(root_dir, mode, 'segmentation.xml')
+        root_dir = os.path.join(root_dir, mode)
 
         with open(paths_file, 'r', encoding='ISO-8859-1') as fr:
             soup = bs(fr, 'html.parser')
