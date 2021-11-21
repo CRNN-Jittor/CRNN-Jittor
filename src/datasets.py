@@ -284,6 +284,7 @@ class IC03(Dataset):
             taggedRectangles_list = soup.select('taggedRectangles')
             for idx in range(len(imageNames)):
                 imageName = imageNames[idx]
+                image_path = os.path.join(root_dir, imageName)
                 taggedRectangles = taggedRectangles_list[idx]
                 taggedRectangle = taggedRectangles.select('taggedrectangle')
                 for item in taggedRectangle:
@@ -292,7 +293,7 @@ class IC03(Dataset):
                     height = float(item.get('height'))
                     width = float(item.get('width'))
                     tag = item.find("tag")
-                    image_paths.append(imageName)
+                    image_paths.append(image_path)
                     sections.append({"x": x, "y": y, "height": height, "width": width})
                     texts.append(str(tag.text).lower())
 
