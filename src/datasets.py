@@ -86,7 +86,7 @@ class Synth90k(Dataset):
         image = jt.float32(image)
         if self.texts:
             text = self.texts[index]
-            target = [CHAR2LABEL[c] for c in text]
+            target = [CHAR2LABEL[c] for c in text if c in CHARS]
             target_length = [len(target)]
 
             target = jt.int64(target)
@@ -221,7 +221,7 @@ class IIIT5K(Dataset):
         image = jt.float32(image)
         if self.texts:
             text = self.texts[index]
-            target = [CHAR2LABEL[c] for c in text]
+            target = [CHAR2LABEL[c] for c in text if c in CHARS]
             target_length = [len(target)]
 
             target = jt.int64(target)
@@ -320,7 +320,7 @@ class IC03(Dataset):
         image = jt.float32(image)
         if self.texts:
             text = self.texts[index]
-            target = [CHAR2LABEL[c] for c in text]
+            target = [CHAR2LABEL[c] for c in text if c in CHARS]
             target_length = [len(target)]
 
             target = jt.int64(target)
