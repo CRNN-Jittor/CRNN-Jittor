@@ -5,7 +5,7 @@ from jittor import nn
 
 from tqdm import tqdm
 
-from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03, IC13
+from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03, IC13, IC15
 from model import CRNN
 from ctc_decoder import ctc_decode
 from config import evaluate_config as config
@@ -76,23 +76,14 @@ def main():
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
 
-    if dataset_name == "Synth90k":
-        test_dataset = Synth90k(root_dir=config['data_dir'],
-                                mode='test',
-                                img_height=img_height,
-                                img_width=img_width,
-                                batch_size=eval_batch_size,
-                                shuffle=False,
-                                num_workers=cpu_workers)
-    else:
-        data_dir = os.path.join(config['test_dir'], dataset_name)
-        test_dataset = eval(dataset_name)(root_dir=data_dir,
-                                          mode='test',
-                                          img_height=img_height,
-                                          img_width=img_width,
-                                          batch_size=eval_batch_size,
-                                          shuffle=False,
-                                          num_workers=cpu_workers)
+    data_dir = os.path.join(config['test_dir'], dataset_name)
+    test_dataset = eval(dataset_name)(root_dir=data_dir,
+                                      mode='test',
+                                      img_height=img_height,
+                                      img_width=img_width,
+                                      batch_size=eval_batch_size,
+                                      shuffle=False,
+                                      num_workers=cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1,
