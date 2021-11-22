@@ -19,7 +19,6 @@ def train_batch(crnn, data, optimizer, criterion):
 
     batch_size = images.size(0)
     input_lengths = jt.int64([logits.size(0)] * batch_size)
-    target_lengths = jt.flatten(target_lengths)
 
     loss = criterion(log_probs, targets, input_lengths, target_lengths)
     optimizer.step(loss)
