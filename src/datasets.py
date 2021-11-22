@@ -299,8 +299,8 @@ class IC13(Dataset):
                         res = pattern.match(line).groups()
                         x = int(str(res[0]).strip())
                         y = int(str(res[1]).strip())
-                        width = int(str(res[2]).strip())
-                        height = int(str(res[3]).strip())
+                        width = int(str(res[2]).strip()) - x
+                        height = int(str(res[3]).strip()) - y
                         tag = str(res[4]).strip().lower()
                         image_paths.append(img_path)
                         sections.append({"x": x, "y": y, "width": width, "height": height})
