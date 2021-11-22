@@ -10,7 +10,7 @@ common_config = {
     'map_to_seq_hidden': 64,
     'rnn_hidden': 256,
     'leaky_relu': False,
-    'cpu_workers': 48,
+    'cpu_workers': 16,
 }
 
 train_config = {
