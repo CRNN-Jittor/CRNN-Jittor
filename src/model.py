@@ -2,10 +2,10 @@ from jittor import nn
 
 
 class CRNN(nn.Module):
-    def __init__(self, img_channel, img_height, img_width, num_class, rnn_hidden=256, leaky_relu=False):
+    def __init__(self, img_channel, img_height, img_width, num_class, rnn_hidden=256):
         super().__init__()
 
-        self.cnn = self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
+        self.cnn = self._cnn_backbone(img_channel, img_height, img_width)
 
         self.rnn_hidden = rnn_hidden
 
@@ -17,7 +17,7 @@ class CRNN(nn.Module):
         self.linear2_1 = nn.Linear(rnn_hidden, num_class)
         self.linear2_2 = nn.Linear(rnn_hidden, num_class)
 
-    def _cnn_backbone(self, img_channel, img_height, img_width, leaky_relu):
+    def _cnn_backbone(self, img_channel, img_height, img_width):
         assert img_height % 16 == 0
         assert img_width % 4 == 0
 
