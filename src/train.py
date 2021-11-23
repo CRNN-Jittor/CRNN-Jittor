@@ -1,13 +1,13 @@
+from argparse import ArgumentParser
 import os
 
 import jittor as jt
-from jittor import nn
 from jittor import optim
 
 from datasets import Synth90k, LABEL2CHAR
 from model import CRNN
 from evaluate import evaluate
-from config import train_config as config
+from config import rnn_hidden, datasets_path
 
 
 def train_batch(crnn, data, optimizer, criterion):
@@ -25,62 +25,135 @@ def train_batch(crnn, data, optimizer, criterion):
 
 
 def main():
-    epochs = config['epochs']
-    train_batch_size = config['train_batch_size']
-    eval_batch_size = config['eval_batch_size']
-    lr = config['lr']
-    show_interval = config['show_interval']
-    valid_interval = config['valid_interval']
-    save_interval = config['save_interval']
-    cpu_workers = config['cpu_workers']
-    reload_checkpoint = config['reload_checkpoint']
-    valid_max_iter = config['valid_max_iter']
-
-    img_width = config['img_width']
-    img_height = config['img_height']
-    data_dir = config['data_dir']
+    parser = ArgumentParser()
+    parser.add_argument("-e",
+                        "--epochs",
+                        default=10000,
+                        type=int,
+                        help="max epochs to train [default: 10000]",
+                        metavar="EPOCHS")
+    parser.add_argument("-b",
+                        "--train_batch_size",
+                        default=32,
+                        type=int,
+                        help="train batch size [default: 32]",
+                        metavar="TRAIN BATCH SIZE")
+    parser.add_argument("-B",
+                        "--valid_batch_size",
+                        default=512,
+                        type=int,
+                        help="validation batch size [default: 512]",
+                        metavar="VALID BATCH SIZE")
+    parser.add_argument("-l",
+                        "--lr",
+                        "--learning_rate",
+                        default=0.0005,
+                        type=float,
+                        help="learning rate [default: 0.0005]",
+                        metavar="LEARNING RATE")
+    parser.add_argument("--show_interval",
+                        default=10,
+                        type=int,
+                        help="number of batches between each 2 loss display [default: 10]",
+                        metavar="SHOW INTERVAL")
+    parser.add_argument("--valid_interval",
+                        default=500,
+                        type=int,
+                        help="number of batches between each 2 evaluation on validation set [default: 500]",
+                        metavar="VALID INTERVAL")
+    parser.add_argument("--save_interval",
+                        default=2000,
+                        type=int,
+                        help="number of batches between each 2 savings of model state_dict [default: 2000]",
+                        metavar="SAVE INTERVAL")
+    parser.add_argument("-n",
+                        "--cpu_workers",
+                        default=16,
+                        type=int,
+                        help="number of cpu workers used to load data [default: 16]",
+                        metavar="CPU WORKERS")
+    parser.add_argument("-r",
+                        "--reload_checkpoint",
+                        default=None,
+                        type=str,
+                        help="the checkpoint to reload [default: None]",
+                        metavar="CHECKPOINT")
+    parser.add_argument("-H",
+                        "--img_height",
+                        default=32,
+                        type=int,
+                        help="image height [default: 32]",
+                        metavar="IMAGE HEIGHT")
+    parser.add_argument("-W",
+                        "--img_width",
+                        default=100,
+                        type=int,
+                        help="image width [default: 100]",
+                        metavar="IMAGE WIDTH")
+    parser.add_argument("--data_dir",
+                        default=os.path.join(datasets_path, "Synth90k/"),
+                        type=str,
+                        help="root directory to Synth90k [default: ../data/Synth90k/]",
+                        metavar="DATA DIR")
+    parser.add_argument("--checkpoints_dir",
+                        default=os.path.join(os.path.dirname(__file__), "../checkpoints/"),
+                        type=str,
+                        help="directory to save checkpoints [default: ../checkpoints/]",
+                        metavar="CHECKPOINTS DIR")
+    parser.add_argument("--cpu",
+                        action="store_true",
+                        help="use cpu for all computation, default to enable cuda when possible")
+    parser.add_argument("--valid_max_iter",
+                        default=100,
+                        type=int,
+                        help="max iterations when evaluating the validation set [default: 100]",
+                        metavar="VALID MAX ITER")
+    parser.add_argument("-d",
+                        "--decode_method",
+                        default="greedy",
+                        type=str,
+                        choices=["greedy", "beam_search", "prefix_beam_search"],
+                        help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
+                        metavar="DECODE METHOD")
+    parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
+    args = parser.parse_args()
 
     try:
-        jt.flags.use_cuda = 1
+        jt.flags.use_cuda = not args.cpu
     except:
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
 
-    train_dataset = Synth90k(root_dir=data_dir,
+    train_dataset = Synth90k(root_dir=args.data_dir,
                              mode='train',
-                             img_height=img_height,
-                             img_width=img_width,
-                             batch_size=train_batch_size,
+                             img_height=args.img_height,
+                             img_width=args.img_width,
+                             batch_size=args.train_batch_size,
                              shuffle=True,
-                             num_workers=cpu_workers)
-    valid_dataset = Synth90k(root_dir=data_dir,
+                             num_workers=args.cpu_workers)
+    valid_dataset = Synth90k(root_dir=args.data_dir,
                              mode='valid',
-                             img_height=img_height,
-                             img_width=img_width,
-                             batch_size=eval_batch_size,
+                             img_height=args.img_height,
+                             img_width=args.img_width,
+                             batch_size=args.valid_batch_size,
                              shuffle=True,
-                             num_workers=cpu_workers)
+                             num_workers=args.cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
-    crnn = CRNN(1,
-                img_height,
-                img_width,
-                num_class,
-                rnn_hidden=config['rnn_hidden'],
-                leaky_relu=config['leaky_relu'])
-    if reload_checkpoint:
-        if reload_checkpoint[-3:] == ".pt":
+    crnn = CRNN(1, args.img_height, args.img_width, num_class, rnn_hidden=rnn_hidden)
+    if args.reload_checkpoint:
+        if args.reload_checkpoint[-3:] == ".pt":
             import torch
-            crnn.load_state_dict(torch.load(reload_checkpoint, map_location="cpu"))
+            crnn.load_state_dict(torch.load(args.reload_checkpoint, map_location="cpu"))
         else:
-            crnn.load(reload_checkpoint)
+            crnn.load(args.reload_checkpoint)
 
-    optimizer = optim.RMSprop(crnn.parameters(), lr=lr)
+    optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
     criterion = jt.CTCLoss(reduction='sum')
 
-    assert save_interval % valid_interval == 0
+    assert args.save_interval % args.valid_interval == 0
     i = 1
-    for epoch in range(1, epochs + 1):
+    for epoch in range(1, args.epochs + 1):
         print(f'epoch: {epoch}')
         tot_train_loss = 0.
         tot_train_count = 0
@@ -90,22 +163,23 @@ def main():
 
             tot_train_loss += loss
             tot_train_count += train_size
-            if i % show_interval == 0:
+            if i % args.show_interval == 0:
                 print('train_batch_loss[', i, ']: ', loss / train_size)
 
-            if i % valid_interval == 0:
+            if i % args.valid_interval == 0:
                 evaluation = evaluate(crnn,
                                       valid_dataset,
                                       criterion,
-                                      max_iter=valid_max_iter,
-                                      decode_method=config['decode_method'],
-                                      beam_size=config['beam_size'])
-                print('valid_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
+                                      max_iter=args.valid_max_iter,
+                                      decode_method=args.decode_method,
+                                      beam_size=args.beam_size)
+                loss = evaluation['loss']
+                acc = evaluation['acc']
+                print(f'valid_evaluation: loss={loss}, acc={acc}')
 
-                if i % save_interval == 0:
+                if i % args.save_interval == 0:
                     prefix = 'crnn'
-                    loss = evaluation['loss']
-                    save_model_path = os.path.join(config['checkpoints_dir'], f'{prefix}_{i:06}_loss{loss}.pkl')
+                    save_model_path = os.path.join(args.checkpoints_dir, f'{prefix}_{i:06}_acc-{acc}_loss-{loss}.pkl')
                     crnn.save(save_model_path)
                     print('save model at ', save_model_path)
 
