@@ -1,18 +1,9 @@
-"""Usage: predict.py [-m MODEL] [-s BS] [-d DECODE] [-b BEAM] [IMAGE ...]
-
--h, --help    show this
--m MODEL     model file [default: ./checkpoints/crnn_synth90k.pt]
--s BS       batch size [default: 256]
--d DECODE    decode method (greedy, beam_search or prefix_beam_search) [default: beam_search]
--b BEAM   beam size [default: 10]
-
-"""
-from docopt import docopt
+from argparse import ArgumentParser
 from tqdm import tqdm
 import jittor as jt
 from jittor import nn
 
-from config import common_config as config
+from config import rnn_hidden
 from datasets import PredictDataset, LABEL2CHAR
 from model import CRNN
 from ctc_decoder import ctc_decode
@@ -44,20 +35,59 @@ def show_result(paths, preds):
 
 
 def main():
-    arguments = docopt(__doc__)
+    parser = ArgumentParser()
+    parser.add_argument("-m",
+                        "--model",
+                        metavar="MODEL",
+                        type=str,
+                        default="./checkpoints/crnn_synth90k.pt",
+                        help="model file [default: ./checkpoints/crnn_synth90k.pt]")
+    parser.add_argument("-s", "--batch_size", metavar="BATCH SIZE", type=int, default=256, help="batch size")
+    parser.add_argument("-d",
+                        "--decode_method",
+                        metavar="DECODE METHOD",
+                        type=str,
+                        choices=["greedy", "beam_search", "prefix_beam_search"],
+                        default="beam_search",
+                        help="decode method (greedy, beam_search or prefix_beam_search) [default: beam_search]")
+    parser.add_argument("-b", "--beam_size", metavar="BEAM SIZE", type=int, default=10, help="beam size [default: 10]")
+    parser.add_argument("-H",
+                        "--img_height",
+                        metavar="IMAGE HEIGHT",
+                        type=int,
+                        default=32,
+                        help="image height [default: 32]")
+    parser.add_argument("-W",
+                        "--img_width",
+                        metavar="IMAGE WIDTH",
+                        type=int,
+                        default=100,
+                        help="image width [default: 100]")
+    parser.add_argument("-n",
+                        "--cpu_workers",
+                        metavar="CPU WORKERS",
+                        type=int,
+                        default=16,
+                        help="number of cpu workers used to load data [default: 16]")
+    parser.add_argument("--cpu",
+                        action="store_true",
+                        help="use cpu for all computation, default to enable cuda when possible")
+    parser.add_argument("images", metavar="IMAGE", type=str, nargs="+", help="path to images")
 
-    images = arguments['IMAGE']
-    reload_checkpoint = arguments['-m']
-    batch_size = int(arguments['-s'])
-    decode_method = arguments['-d']
-    beam_size = int(arguments['-b'])
+    args = parser.parse_args()
 
-    img_height = config['img_height']
-    img_width = config['img_width']
-    cpu_workers = config['cpu_workers']
+    images = args.images
+    reload_checkpoint = args.model
+    batch_size = args.batch_size
+    decode_method = args.decode_method
+    beam_size = args.beam_size
+
+    img_height = args.img_height
+    img_width = args.img_width
+    cpu_workers = args.cpu_workers
 
     try:
-        jt.flags.use_cuda = 1
+        jt.flags.use_cuda = not args.cpu
     except:
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
@@ -70,12 +100,7 @@ def main():
                                      num_workers=cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
-    crnn = CRNN(1,
-                img_height,
-                img_width,
-                num_class,
-                rnn_hidden=config['rnn_hidden'],
-                leaky_relu=config['leaky_relu'])
+    crnn = CRNN(1, img_height, img_width, num_class, rnn_hidden=rnn_hidden)
     if reload_checkpoint[-3:] == ".pt":
         import torch
         crnn.load_state_dict(torch.load(reload_checkpoint, map_location="cpu"))
