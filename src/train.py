@@ -66,7 +66,6 @@ def main():
                 img_height,
                 img_width,
                 num_class,
-                map_to_seq_hidden=config['map_to_seq_hidden'],
                 rnn_hidden=config['rnn_hidden'],
                 leaky_relu=config['leaky_relu'])
     if reload_checkpoint:
