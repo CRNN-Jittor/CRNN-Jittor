@@ -14,11 +14,10 @@ def train_batch(crnn, data, optimizer, criterion):
     crnn.train()
     images, targets, target_lengths = [d for d in data]
 
-    logits = crnn(images)
-    log_probs = nn.log_softmax(logits, dim=2)
+    log_probs = crnn(images)
 
     batch_size = images.size(0)
-    input_lengths = jt.int64([logits.size(0)] * batch_size)
+    input_lengths = jt.int64([log_probs.size(0)] * batch_size)
 
     loss = criterion(log_probs, targets, input_lengths, target_lengths)
     optimizer.step(loss)

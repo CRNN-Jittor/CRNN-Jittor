@@ -25,8 +25,7 @@ def predict(crnn, dataset, label2char, decode_method, beam_size):
     with jt.no_grad():
         pbar = tqdm(total=len(dataset), desc="Predict")
         for data in dataset:
-            logits = crnn(data)
-            log_probs = nn.log_softmax(logits, dim=2)
+            log_probs = crnn(data)
 
             preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size, label2char=label2char)
             all_preds += preds

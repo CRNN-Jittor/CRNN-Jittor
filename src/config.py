@@ -7,7 +7,6 @@ common_config = {
     'test_dir': os.path.join(curr_path, '../data/'),
     'img_width': 100,
     'img_height': 32,
-    'map_to_seq_hidden': 64,
     'rnn_hidden': 256,
     'leaky_relu': False,
     'cpu_workers': 16,

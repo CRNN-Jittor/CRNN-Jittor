@@ -2,25 +2,20 @@ from jittor import nn
 
 
 class CRNN(nn.Module):
-    def __init__(self,
-                 img_channel,
-                 img_height,
-                 img_width,
-                 num_class,
-                 map_to_seq_hidden=64,
-                 rnn_hidden=256,
-                 leaky_relu=False):
+    def __init__(self, img_channel, img_height, img_width, num_class, rnn_hidden=256, leaky_relu=False):
         super().__init__()
 
-        self.cnn, (output_channel, output_height,
-                   output_width) = self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
+        self.cnn = self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
 
-        self.map_to_seq = nn.Linear((output_channel * output_height), map_to_seq_hidden)
+        self.rnn_hidden = rnn_hidden
 
-        self.rnn1 = nn.LSTM(map_to_seq_hidden, rnn_hidden, bidirectional=True)
-        self.rnn2 = nn.LSTM(2 * rnn_hidden, rnn_hidden, bidirectional=True)
+        self.blstm1 = nn.LSTM(512, rnn_hidden, bidirectional=True)
+        self.linear1_1 = nn.Linear(rnn_hidden, rnn_hidden)
+        self.linear1_2 = nn.Linear(rnn_hidden, rnn_hidden)
 
-        self.dense = nn.Linear(2 * rnn_hidden, num_class)
+        self.blstm2 = nn.LSTM(rnn_hidden, rnn_hidden, bidirectional=True)
+        self.linear2_1 = nn.Linear(rnn_hidden, num_class)
+        self.linear2_2 = nn.Linear(rnn_hidden, num_class)
 
     def _cnn_backbone(self, img_channel, img_height, img_width, leaky_relu):
         assert img_height % 16 == 0
@@ -45,7 +40,7 @@ class CRNN(nn.Module):
             if batch_norm:
                 cnn.add_module(f'batchnorm{i}', nn.BatchNorm(output_channel))
 
-            relu = nn.LeakyReLU(scale=0.2) if leaky_relu else nn.ReLU()
+            relu = nn.ReLU()
             cnn.add_module(f'relu{i}', relu)
 
         # size of image: (channel, height, width) = (img_channel, img_height, img_width)
@@ -70,11 +65,11 @@ class CRNN(nn.Module):
         conv_relu(6)
         # (512, img_height // 16 - 1, img_width // 4 - 1)
 
-        output_channel = channels[-1]
-        output_height = img_height // 16 - 1
-        output_width = img_width // 4 - 1
+        # output_channel = channels[-1]
+        # output_height = img_height // 16 - 1
+        # output_width = img_width // 4 - 1
 
-        return cnn, (output_channel, output_height, output_width)
+        return cnn
 
     def execute(self, images):
         # shape of images: (batch, channel, height, width)
@@ -83,11 +78,15 @@ class CRNN(nn.Module):
         batch, channel, height, width = conv.shape
 
         conv = conv.view(batch, channel * height, width)
-        conv = conv.permute(2, 0, 1)  # (width, batch, feature)
-        seq = self.map_to_seq(conv)
+        seq = conv.permute(2, 0, 1)  # (width, batch, feature)
 
-        recurrent, _ = self.rnn1(seq)
-        recurrent, _ = self.rnn2(recurrent)
+        rec1, _ = self.blstm1(seq)
+        out1 = self.linear1_1(rec1[:, :, :self.rnn_hidden]) + self.linear1_2(rec1[:, :, self.rnn_hidden:])
 
-        output = self.dense(recurrent)
-        return output  # shape: (seq_len, batch, num_class)
+        rec2, _ = self.blstm2(out1)
+        logits = self.linear2_1(rec2[:, :, :self.rnn_hidden]) + self.linear2_2(rec2[:, :, self.rnn_hidden:])
+        # shape: (seq_len, batch, num_class)
+
+        log_probs = nn.log_softmax(logits, dim=2)
+
+        return log_probs
