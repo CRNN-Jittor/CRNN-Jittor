@@ -108,6 +108,8 @@ from config import rnn_hidden
 from utils import not_real
 import pdb
 
+jt.set_global_seed(19)
+
 
 def train_batch(crnn, data, optimizer, criterion):
     crnn.train()
