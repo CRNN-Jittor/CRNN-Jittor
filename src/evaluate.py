@@ -115,7 +115,7 @@ def main():
 
     dataset_path = os.path.join(args.datasets_path, args.dataset)
 
-    test_dataset = eval(args.dataset_name)(root_dir=dataset_path,
+    test_dataset = eval(args.dataset)(root_dir=dataset_path,
                                            mode='test',
                                            img_height=args.img_height,
                                            img_width=args.img_width,
