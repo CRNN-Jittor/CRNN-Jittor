@@ -1,30 +1,7 @@
 from argparse import ArgumentParser
 import os
 
-import jittor as jt
-from jittor import optim
-
-from datasets import Synth90k, LABEL2CHAR
-from model import CRNN
-from evaluate import evaluate
-from config import rnn_hidden, datasets_path
-
-
-def train_batch(crnn, data, optimizer, criterion):
-    crnn.train()
-    images, targets, target_lengths = [d for d in data]
-
-    log_probs = crnn(images)
-
-    batch_size = images.size(0)
-    input_lengths = jt.int64([log_probs.size(0)] * batch_size)
-
-    loss = criterion(log_probs, targets, input_lengths, target_lengths)
-    optimizer.step(loss)
-    return loss.item()
-
-
-def main():
+if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-e",
                         "--epochs",
@@ -103,6 +80,7 @@ def main():
     parser.add_argument("--cpu",
                         action="store_true",
                         help="use cpu for all computation, default to enable cuda when possible")
+    parser.add_argument("--no_shuffle", action="store_true", help="do not shuffle the dataset when training")
     parser.add_argument("--valid_max_iter",
                         default=100,
                         type=int,
@@ -118,6 +96,35 @@ def main():
     parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
     args = parser.parse_args()
 
+import jittor as jt
+from jittor import optim
+
+from datasets import Synth90k, LABEL2CHAR
+from model import CRNN
+from evaluate import evaluate
+from config import rnn_hidden, datasets_path
+
+from utils import not_real
+import pdb
+
+
+def train_batch(crnn, data, optimizer, criterion):
+    crnn.train()
+    images, targets, target_lengths = [d for d in data]
+
+    log_probs = crnn(images)
+
+    batch_size = images.size(0)
+    input_lengths = jt.int64([log_probs.size(0)] * batch_size)
+
+    loss = criterion(log_probs, targets, input_lengths, target_lengths)
+    if not_real(loss):
+        pdb.set_trace()
+    optimizer.step(loss)
+    return loss.item()
+
+
+def main():
     try:
         jt.flags.use_cuda = not args.cpu
     except:
@@ -129,30 +136,33 @@ def main():
                              img_height=args.img_height,
                              img_width=args.img_width,
                              batch_size=args.train_batch_size,
-                             shuffle=True,
+                             shuffle=not args.no_shuffle,
                              num_workers=args.cpu_workers)
     valid_dataset = Synth90k(root_dir=args.data_dir,
                              mode='valid',
                              img_height=args.img_height,
                              img_width=args.img_width,
                              batch_size=args.valid_batch_size,
-                             shuffle=True,
+                             shuffle=not args.no_shuffle,
                              num_workers=args.cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1, args.img_height, args.img_width, num_class, rnn_hidden=rnn_hidden)
+
+    i = 1
     if args.reload_checkpoint:
         if args.reload_checkpoint[-3:] == ".pt":
             import torch
             crnn.load_state_dict(torch.load(args.reload_checkpoint, map_location="cpu"))
         else:
             crnn.load(args.reload_checkpoint)
+            i += int(args.reload_checkpoint[5:11])
+    print("i = ", i)
 
     optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
     criterion = jt.CTCLoss(reduction='sum')
 
     assert args.save_interval % args.valid_interval == 0
-    i = 1
     for epoch in range(1, args.epochs + 1):
         print(f'epoch: {epoch}')
         tot_train_loss = 0.
@@ -178,8 +188,7 @@ def main():
                 print(f'valid_evaluation: loss={loss}, acc={acc}')
 
                 if i % args.save_interval == 0:
-                    prefix = 'crnn'
-                    save_model_path = os.path.join(args.checkpoints_dir, f'{prefix}_{i:06}_acc-{acc}_loss-{loss}.pkl')
+                    save_model_path = os.path.join(args.checkpoints_dir, f'crnn_{i:06}_acc-{acc}_loss-{loss}.pkl')
                     crnn.save(save_model_path)
                     print('save model at ', save_model_path)
 

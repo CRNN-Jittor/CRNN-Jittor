@@ -1,39 +1,6 @@
 from argparse import ArgumentParser
-from tqdm import tqdm
-import jittor as jt
 
-from config import rnn_hidden
-from datasets import PredictDataset, LABEL2CHAR
-from model import CRNN
-from ctc_decoder import ctc_decode
-
-
-def predict(crnn, dataset, label2char, decode_method, beam_size):
-    crnn.eval()
-
-    all_preds = []
-    with jt.no_grad():
-        pbar = tqdm(total=len(dataset), desc="Predict")
-        for data in dataset:
-            log_probs = crnn(data)
-
-            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size, label2char=label2char)
-            all_preds += preds
-
-            pbar.update(1)
-        pbar.close()
-
-    return all_preds
-
-
-def show_result(paths, preds):
-    print('\n===== result =====')
-    for path, pred in zip(paths, preds):
-        text = ''.join(pred)
-        print(f'{path} > {text}')
-
-
-def main():
+if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-r",
                         "--reload_checkpoint",
@@ -75,6 +42,41 @@ def main():
 
     args = parser.parse_args()
 
+from tqdm import tqdm
+import jittor as jt
+
+from config import rnn_hidden
+from datasets import PredictDataset, LABEL2CHAR
+from model import CRNN
+from ctc_decoder import ctc_decode
+
+
+def predict(crnn, dataset, label2char, decode_method, beam_size):
+    crnn.eval()
+
+    all_preds = []
+    with jt.no_grad():
+        pbar = tqdm(total=len(dataset), desc="Predict")
+        for data in dataset:
+            log_probs = crnn(data)
+
+            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size, label2char=label2char)
+            all_preds += preds
+
+            pbar.update(1)
+        pbar.close()
+
+    return all_preds
+
+
+def show_result(paths, preds):
+    print('\n===== result =====')
+    for path, pred in zip(paths, preds):
+        text = ''.join(pred)
+        print(f'{path} > {text}')
+
+
+def main():
     try:
         jt.flags.use_cuda = not args.cpu
     except:

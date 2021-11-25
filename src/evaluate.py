@@ -1,57 +1,7 @@
-import jittor as jt
-import os
 from argparse import ArgumentParser
+import os
 
-from tqdm import tqdm
-
-from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03, IC13, IC15, SVT
-from model import CRNN
-from ctc_decoder import ctc_decode
-from config import rnn_hidden, datasets_path
-
-
-def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
-    crnn.eval()
-
-    tot_count = 0
-    tot_loss = 0
-    tot_correct = 0
-
-    with jt.no_grad():
-        pbar_total = max_iter if max_iter else len(dataset)
-        pbar = tqdm(total=pbar_total, desc="Evaluate")
-        for i, data in enumerate(dataset):
-            if max_iter and i >= max_iter:
-                break
-
-            images, targets, target_lengths = [d for d in data]
-
-            log_probs = crnn(images)
-
-            batch_size = images.size(0)
-            input_lengths = jt.int64([log_probs.size(0)] * batch_size)
-
-            loss = criterion(log_probs, targets, input_lengths, target_lengths)
-
-            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size)
-            reals = targets.numpy().tolist()
-            target_lengths = target_lengths.numpy().tolist()
-
-            tot_count += batch_size
-            tot_loss += loss.item()
-            for pred, real, target_length in zip(preds, reals, target_lengths):
-                real = real[:target_length]
-                if pred == real:
-                    tot_correct += 1
-
-            pbar.update(1)
-        pbar.close()
-
-    evaluation = {'loss': tot_loss / tot_count, 'acc': tot_correct / tot_count}
-    return evaluation
-
-
-def main():
+if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("dataset",
                         type=str,
@@ -107,6 +57,62 @@ def main():
     parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
     args = parser.parse_args()
 
+import jittor as jt
+from tqdm import tqdm
+
+from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03, IC13, IC15, SVT
+from model import CRNN
+from ctc_decoder import ctc_decode
+from config import rnn_hidden, datasets_path
+
+from utils import not_real
+import pdb
+
+
+def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
+    crnn.eval()
+
+    tot_count = 0
+    tot_loss = 0
+    tot_correct = 0
+
+    with jt.no_grad():
+        pbar_total = max_iter if max_iter else len(dataset)
+        pbar = tqdm(total=pbar_total, desc="Evaluate")
+        for i, data in enumerate(dataset):
+            if max_iter and i >= max_iter:
+                break
+
+            images, targets, target_lengths = [d for d in data]
+
+            log_probs = crnn(images)
+
+            batch_size = images.size(0)
+            input_lengths = jt.int64([log_probs.size(0)] * batch_size)
+
+            loss = criterion(log_probs, targets, input_lengths, target_lengths)
+            if not_real(loss):
+                pdb.set_trace()
+
+            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size)
+            reals = targets.numpy().tolist()
+            target_lengths = target_lengths.numpy().tolist()
+
+            tot_count += batch_size
+            tot_loss += loss.item()
+            for pred, real, target_length in zip(preds, reals, target_lengths):
+                real = real[:target_length]
+                if pred == real:
+                    tot_correct += 1
+
+            pbar.update(1)
+        pbar.close()
+
+    evaluation = {'loss': tot_loss / tot_count, 'acc': tot_correct / tot_count}
+    return evaluation
+
+
+def main():
     try:
         jt.flags.use_cuda = not args.cpu
     except:
@@ -116,12 +122,12 @@ def main():
     dataset_path = os.path.join(args.datasets_path, args.dataset)
 
     test_dataset = eval(args.dataset)(root_dir=dataset_path,
-                                           mode='test',
-                                           img_height=args.img_height,
-                                           img_width=args.img_width,
-                                           batch_size=args.eval_batch_size,
-                                           shuffle=False,
-                                           num_workers=args.cpu_workers)
+                                      mode='test',
+                                      img_height=args.img_height,
+                                      img_width=args.img_width,
+                                      batch_size=args.eval_batch_size,
+                                      shuffle=False,
+                                      num_workers=args.cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1, args.img_height, args.img_width, num_class, rnn_hidden=rnn_hidden)
