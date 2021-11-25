@@ -57,7 +57,6 @@ def main():
                         type=str,
                         choices=["Synth90k", "IIIT5K", "IC03", "IC13", "IC15", "SVT"],
                         help="name of the dataset",
-                        required=True,
                         metavar="DATASET")
     parser.add_argument("-p",
                         "--datasets_path",
