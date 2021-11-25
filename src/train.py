@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import os
+from config import datasets_path
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -102,7 +103,7 @@ from jittor import optim
 from datasets import Synth90k, LABEL2CHAR
 from model import CRNN
 from evaluate import evaluate
-from config import rnn_hidden, datasets_path
+from config import rnn_hidden
 
 from utils import not_real
 import pdb
