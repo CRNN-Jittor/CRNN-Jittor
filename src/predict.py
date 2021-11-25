@@ -17,7 +17,7 @@ def predict(crnn, dataset, label2char, decode_method, beam_size):
         for data in dataset:
             log_probs = crnn(data)
 
-            preds = ctc_decode(log_probs, method=decode_method, beam_size=beam_size, label2char=label2char)
+            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size, label2char=label2char)
             all_preds += preds
 
             pbar.update(1)
