@@ -35,9 +35,9 @@ if __name__ == "__main__":
                         help="number of batches between each 2 loss display [default: 10]",
                         metavar="SHOW INTERVAL")
     parser.add_argument("--valid_interval",
-                        default=500,
+                        default=2000,
                         type=int,
-                        help="number of batches between each 2 evaluation on validation set [default: 500]",
+                        help="number of batches between each 2 evaluation on validation set [default: 2000]",
                         metavar="VALID INTERVAL")
     parser.add_argument("--save_interval",
                         default=2000,
