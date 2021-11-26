@@ -111,7 +111,7 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
                 if args.lexicon_based:
                     pred = "".join([LABEL2CHAR[c] for c in pred])
                     pred = bk_tree.query(pred, 3).word
-                    pred = [CHAR2LABEL(c) for c in pred]
+                    pred = [CHAR2LABEL[c] for c in pred]
                 real = real[:target_length]
                 if pred == real:
                     tot_correct += 1
