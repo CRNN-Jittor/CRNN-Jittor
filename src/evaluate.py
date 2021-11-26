@@ -65,7 +65,7 @@ if __name__ == "__main__":
 import jittor as jt
 from tqdm import tqdm
 
-from datasets import LABEL2CHAR, CHAR2LABEL, Synth90k, IIIT5K, IC03, IC13, IC15, SVT
+from datasets import *
 from model import CRNN
 from ctc_decoder import ctc_decode
 from BKtree import *
@@ -109,9 +109,9 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
             tot_loss += loss.item()
             for pred, real, target_length in zip(preds, reals, target_lengths):
                 if args.lexicon_based:
-                    pred = "".join([LABEL2CHAR[c] for c in pred])
+                    pred = "".join([LABEL2CHAR[c] for c in pred if c in CHARS])
                     pred = bk_tree.query(pred, 3).word
-                    pred = [CHAR2LABEL[c] for c in pred]
+                    pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
                 real = real[:target_length]
                 if pred == real:
                     tot_correct += 1
