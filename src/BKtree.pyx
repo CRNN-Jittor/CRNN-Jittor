@@ -15,7 +15,7 @@ cimport cython
 def edit_dist(word1, word2):
     cdef int len1 = len(word1)
     cdef int len2 = len(word2)
-    cdef np.ndarray[np.int_t, ndim=2] dp = np.zeros((len1 + 1, len2 + 1), dtype=np.int_t)
+    cdef np.ndarray[np.int_t, ndim=2] dp = np.zeros((len1 + 1, len2 + 1), dtype=np.int)
     cdef int i, j, delta
     for i in range(len1 + 1):
         dp[i, 0] = i
