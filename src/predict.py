@@ -58,19 +58,12 @@ from BKtree import *
 
 def predict(crnn, dataset, label2char, decode_method, beam_size):
     crnn.eval()
-    if args.lexicon_based:
-        bk_tree = load_BKTree()
     all_preds = []
     with jt.no_grad():
         pbar = tqdm(total=len(dataset), desc="Predict")
         for data in dataset:
             log_probs = crnn(data)
-
             preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size, label2char=label2char)
-            if args.lexicon_based:
-                pred = "".join([LABEL2CHAR[c] for c in pred])
-                pred = bk_tree.query(pred, 3).word
-                pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
             all_preds += preds
             pbar.update(1)
         pbar.close()
@@ -79,8 +72,14 @@ def predict(crnn, dataset, label2char, decode_method, beam_size):
 
 
 def show_result(paths, preds):
+    if args.lexicon_based:
+        bk_tree = load_BKTree()
     print('\n===== result =====')
     for path, pred in zip(paths, preds):
+        if args.lexicon_based:
+            pred = "".join([LABEL2CHAR[c] for c in pred])
+            pred = bk_tree.query(pred, 3).word
+            pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
         text = ''.join(pred)
         print(f'{path} > {text}')
 
