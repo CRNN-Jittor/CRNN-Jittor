@@ -57,18 +57,16 @@ class TreeNode:
         min_edit_dist = n
         # 精确匹配
         if distance == 0:
-            results.clear()
             results.append(ResultNode(target, 0))
             return results
         if distance <= min_edit_dist:
             min_edit_dist = min(min_edit_dist, distance)
             results.append(ResultNode(self.word, distance))
-        if distance != 0:
-            for query_distance in range(max(distance - min_edit_dist, 1), distance + min_edit_dist + 1):
-                if query_distance not in keys:
-                    continue
-                value_node = self.child_node_dict[query_distance]
-                results += value_node.query(target, min_edit_dist)
+        for query_distance in range(max(distance - min_edit_dist, 1), distance + min_edit_dist + 1):
+            if query_distance not in keys:
+                continue
+            value_node = self.child_node_dict[query_distance]
+            results += value_node.query(target, min_edit_dist)
         return results
 
 class BKTree:
@@ -102,7 +100,10 @@ def load_BKTree():
         word_list = []
         with open(lexicon_path, 'r', encoding="ISO-8859-1") as fr:
             for line in fr.readlines():
-                word_list.append(str(line).strip().lower())
+                word = str(line).strip()
+                if word != word.lower():
+                    continue
+                word_list.append(word)
         root_word_idx = random.randint(0, len(word_list) - 1)
         bk_tree = BKTree(word_list[root_word_idx])
         print("[*] Begin building BK tree...")
