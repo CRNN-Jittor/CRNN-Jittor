@@ -21,6 +21,12 @@ if __name__ == "__main__":
                         help="the checkpoint to reload",
                         required=True,
                         metavar="CHECKPOINT")
+    parser.add_argument("-l",
+                        "--lexicon_based",
+                        type=bool,
+                        help="lexicon based method",
+                        default=False,
+                        metavar="LEXICON")
     parser.add_argument("-b",
                         "--eval_batch_size",
                         default=512,
@@ -71,7 +77,8 @@ import pdb
 
 
 def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
-    bk_tree = load_BKTree()
+    if args.lexicon_based:
+        bk_tree = load_BKTree()
     crnn.eval()
 
     tot_count = 0
@@ -103,7 +110,8 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
             tot_count += batch_size
             tot_loss += loss.item()
             for pred, real, target_length in zip(preds, reals, target_lengths):
-                pred = bk_tree.query(pred, 3)
+                if args.lexicon_based:
+                    pred = bk_tree.query(pred, 3)
                 real = real[:target_length]
                 if pred == real:
                     tot_correct += 1

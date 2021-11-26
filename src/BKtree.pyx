@@ -1,15 +1,22 @@
+#cython: language_level=3
+
 import os
 import sys
 import pickle
 import random
 from config import *
 import numpy as np
+cimport numpy as np
+cimport cython
 
 # 计算两词之间的编辑距离，支持删除、插入和替换操作
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
 def edit_dist(word1, word2):
-    len1 = len(word1)
-    len2 = len(word2)
-    dp = np.zeros((len1 + 1, len2 + 1))
+    cdef int len1 = len(word1)
+    cdef int len2 = len(word2)
+    cdef np.ndarray[np.int, ndim=2] dp = np.zeros((len1 + 1, len2 + 1), dtype=np.int32)
+    cdef int i, j, delta
     for i in range(len1 + 1):
         dp[i, 0] = i
     for j in range(len2 + 1):
@@ -101,9 +108,9 @@ def load_BKTree():
         print("[*] Begin building BK tree...")
         for idx, word in enumerate(word_list):
             process = float(idx * 100.0 / len(word_list))
-            print("\r", end="")
+            print("\r")
             print("Building Process: %.2f%% " % process,
-                    "▋" * (int(process) // 2), end="")
+                    "▋" * (int(process) // 2))
             sys.stdout.flush()
             bk_tree.put(word)
         dump_BKTree(bk_tree)
