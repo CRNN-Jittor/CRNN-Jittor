@@ -68,7 +68,7 @@ class TreeNode:
                 if query_distance not in keys:
                     continue
                 value_node = self.child_node_dict[query_distance]
-                results += value_node.query(target, n)
+                results += value_node.query(target, min_edit_dist)
         return results
 
 class BKTree:

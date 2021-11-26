@@ -9,8 +9,12 @@ if __name__ == "__main__":
                         required=True,
                         metavar="CHECKPOINT")
     parser.add_argument("-s", "--batch_size", metavar="BATCH SIZE", type=int, default=256, help="batch size")
-    parser.add_argument("-d",
-                        "--decode_method",
+    parser.add_argument("-l",
+                        "--lexicon_based",
+                        action="store_true",
+                        help="lexicon based method")
+    parser.add_argument("--decode_method",
+                        "-d",
                         default="beam_search",
                         type=str,
                         choices=["greedy", "beam_search", "prefix_beam_search"],
@@ -46,14 +50,16 @@ from tqdm import tqdm
 import jittor as jt
 
 from config import rnn_hidden
-from datasets import PredictDataset, LABEL2CHAR
+from datasets import PredictDataset, LABEL2CHAR, CHAR2LABEL, CHARS
 from model import CRNN
 from ctc_decoder import ctc_decode
+from BKtree import *
 
 
 def predict(crnn, dataset, label2char, decode_method, beam_size):
     crnn.eval()
-
+    if args.lexicon_based:
+        bk_tree = load_BKTree()
     all_preds = []
     with jt.no_grad():
         pbar = tqdm(total=len(dataset), desc="Predict")
@@ -61,8 +67,11 @@ def predict(crnn, dataset, label2char, decode_method, beam_size):
             log_probs = crnn(data)
 
             preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size, label2char=label2char)
+            if args.lexicon_based:
+                pred = "".join([LABEL2CHAR[c] for c in pred])
+                pred = bk_tree.query(pred, 3).word
+                pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
             all_preds += preds
-
             pbar.update(1)
         pbar.close()
 
