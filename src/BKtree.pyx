@@ -57,7 +57,7 @@ class TreeNode:
         min_edit_dist = n
         # 精确匹配
         if distance == 0:
-            results.append(ResultNode(target, 0))
+            results.append(ResultNode(self.word, 0))
             return results
         if distance <= min_edit_dist:
             min_edit_dist = min(min_edit_dist, distance)

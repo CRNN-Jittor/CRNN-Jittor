@@ -77,8 +77,9 @@ def show_result(paths, preds):
     print('\n===== result =====')
     for path, pred in zip(paths, preds):
         if args.lexicon_based:
+            pred = ''.join(pred)
             pred = bk_tree.query(pred, 3).word
-        text = ''.join(pred)
+        text = pred
         print(f'{path} > {text}')
 
 

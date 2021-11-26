@@ -109,7 +109,7 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
             tot_loss += loss.item()
             for pred, real, target_length in zip(preds, reals, target_lengths):
                 if args.lexicon_based:
-                    pred = "".join([LABEL2CHAR[c] for c in pred])
+                    pred = ''.join([LABEL2CHAR[c] for c in pred])
                     pred = bk_tree.query(pred, 3).word
                     pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
                 real = real[:target_length]
