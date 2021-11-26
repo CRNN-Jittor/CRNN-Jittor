@@ -23,10 +23,8 @@ if __name__ == "__main__":
                         metavar="CHECKPOINT")
     parser.add_argument("-l",
                         "--lexicon_based",
-                        type=bool,
-                        help="lexicon based method",
-                        default=False,
-                        metavar="LEXICON")
+                        action="store_true",
+                        help="lexicon based method")
     parser.add_argument("-b",
                         "--eval_batch_size",
                         default=512,
