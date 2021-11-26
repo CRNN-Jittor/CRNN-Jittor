@@ -77,7 +77,6 @@ def show_result(paths, preds):
     print('\n===== result =====')
     for path, pred in zip(paths, preds):
         if args.lexicon_based:
-            pred = "".join([LABEL2CHAR[c] for c in pred])
             pred = bk_tree.query(pred, 3).word
             pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
         text = ''.join(pred)
