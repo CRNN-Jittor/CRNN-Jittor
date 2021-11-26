@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from config import *
 import os
 
 if __name__ == "__main__":
@@ -63,13 +64,14 @@ from tqdm import tqdm
 from datasets import LABEL2CHAR, Synth90k, IIIT5K, IC03, IC13, IC15, SVT
 from model import CRNN
 from ctc_decoder import ctc_decode
-from config import rnn_hidden, datasets_path
+from BKtree import *
 
 from utils import not_real
 import pdb
 
 
 def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
+    bk_tree = load_BKTree()
     crnn.eval()
 
     tot_count = 0
@@ -101,6 +103,7 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
             tot_count += batch_size
             tot_loss += loss.item()
             for pred, real, target_length in zip(preds, reals, target_lengths):
+                pred = bk_tree.query(pred, 3)
                 real = real[:target_length]
                 if pred == real:
                     tot_correct += 1
