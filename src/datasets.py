@@ -92,7 +92,9 @@ class Synth90k(Dataset):
 
             target = jt.int64(target)
             target_length = jt.int64(target_length)
-            return image, target, target_length
+
+            lex_path = ""
+            return image, target, target_length, lex_path
         else:
             return image
 
@@ -227,7 +229,9 @@ class IIIT5K(Dataset):
 
             target = jt.int64(target)
             target_length = jt.int64(target_length)
-            return image, target, target_length
+
+            lex_path = ""
+            return image, target, target_length, lex_path
         else:
             return image
 
@@ -335,7 +339,9 @@ class IC13(Dataset):
 
             target = jt.int64(target)
             target_length = jt.int64(target_length)
-            return image, target, target_length
+
+            lex_path = ""
+            return image, target, target_length, lex_path
         else:
             return image
 
@@ -435,7 +441,9 @@ class IC03(Dataset):
 
             target = jt.int64(target)
             target_length = jt.int64(target_length)
-            return image, target, target_length
+
+            lex_path = ""
+            return image, target, target_length, lex_path
         else:
             return image
 
@@ -543,7 +551,9 @@ class IC15(Dataset):
 
             target = jt.int64(target)
             target_length = jt.int64(target_length)
-            return image, target, target_length
+
+            lex_path = ""
+            return image, target, target_length, lex_path
         else:
             return image
 
@@ -643,7 +653,9 @@ class SVT(Dataset):
 
             target = jt.int64(target)
             target_length = jt.int64(target_length)
-            return image, target, target_length
+
+            lex_path = os.path.join("SVT", str(img_path).split('/')[-1][:-4] + '.pkl')
+            return image, target, target_length, lex_path
         else:
             return image
 

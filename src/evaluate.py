@@ -80,8 +80,6 @@ def evaluate(crnn,
              beam_size=10,
              lexicon_based=False,
              debug=False):
-    if lexicon_based:
-        bk_tree = load_BKTree()
     crnn.eval()
 
     tot_count = 0
@@ -95,7 +93,10 @@ def evaluate(crnn,
             if max_iter and i >= max_iter:
                 break
 
-            images, targets, target_lengths = [d for d in data]
+            images, targets, target_lengths, lex_paths = [d for d in data]
+
+            if lexicon_based and lex_paths[0] == "":
+                bk_tree = load_BKTree()
 
             log_probs = crnn(images)
 
@@ -112,8 +113,9 @@ def evaluate(crnn,
 
             tot_count += batch_size
             tot_loss += loss.item()
-            for pred, real, target_length in zip(preds, reals, target_lengths):
+            for pred, real, target_length, lex_path in zip(preds, reals, target_lengths, lex_paths):
                 if lexicon_based:
+                    bk_tree = load_BKTree(lex_path) if not bk_tree else bk_tree
                     pred = ''.join([LABEL2CHAR[c] for c in pred])
                     pred = bk_tree.query(pred, 3).word
                     pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
