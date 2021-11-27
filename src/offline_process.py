@@ -62,4 +62,4 @@ def default_50k_lexicon():
 
 if __name__ == "__main__":
     default_50k_lexicon()
-    
+    SVT_lexicon()
