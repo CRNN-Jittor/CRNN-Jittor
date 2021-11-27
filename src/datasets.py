@@ -99,7 +99,7 @@ class Synth90k(Dataset):
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -108,7 +108,7 @@ class Synth90k(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths
+        return images, targets, target_lengths, lex_paths
 
 
 class PredictDataset(Dataset):
@@ -236,7 +236,7 @@ class IIIT5K(Dataset):
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -245,7 +245,7 @@ class IIIT5K(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths
+        return images, targets, target_lengths, lex_paths
 
 
 class IC13(Dataset):
@@ -346,7 +346,7 @@ class IC13(Dataset):
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -355,7 +355,7 @@ class IC13(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths
+        return images, targets, target_lengths, lex_paths
 
 class IC03(Dataset):
     def __init__(self,
@@ -448,7 +448,7 @@ class IC03(Dataset):
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -457,7 +457,7 @@ class IC03(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths
+        return images, targets, target_lengths, lex_paths
 
 
 class IC15(Dataset):
@@ -558,7 +558,7 @@ class IC15(Dataset):
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -567,7 +567,7 @@ class IC15(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths
+        return images, targets, target_lengths, lex_paths
 
 
 class SVT(Dataset):
@@ -660,7 +660,7 @@ class SVT(Dataset):
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths = zip(*batch)
+        images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -669,4 +669,4 @@ class SVT(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths
+        return images, targets, target_lengths, lex_paths
