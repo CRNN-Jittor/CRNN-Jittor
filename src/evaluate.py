@@ -115,7 +115,8 @@ def evaluate(crnn,
             tot_loss += loss.item()
             for pred, real, target_length, lex_path in zip(preds, reals, target_lengths, lex_paths):
                 if lexicon_based:
-                    bk_tree = load_BKTree(lex_path) if not bk_tree else bk_tree
+                    if lex_path:
+                        bk_tree = load_BKTree(lex_path)
                     pred = ''.join([LABEL2CHAR[c] for c in pred])
                     pred = bk_tree.query(pred, 3).word
                     pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
