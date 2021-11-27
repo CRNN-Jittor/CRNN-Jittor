@@ -87,18 +87,24 @@ if __name__ == "__main__":
                         type=int,
                         help="max iterations when evaluating the validation set [default: 100]",
                         metavar="VALID MAX ITER")
-    parser.add_argument("-d",
-                        "--decode_method",
+    parser.add_argument("--decode_method",
                         default="greedy",
                         type=str,
                         choices=["greedy", "beam_search", "prefix_beam_search"],
                         help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
                         metavar="DECODE METHOD")
     parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
+    parser.add_argument("-s", "--seed", default=17, type=int, metavar="SEED", help="random number seed")
     args = parser.parse_args()
 
 import jittor as jt
 from jittor import optim
+
+jt.set_global_seed(args.seed)
+
+import numpy as np
+
+np.random.seed(args.seed)
 
 from datasets import Synth90k, LABEL2CHAR
 from model import CRNN
@@ -107,8 +113,6 @@ from config import rnn_hidden
 
 from utils import not_real
 import pdb
-
-jt.set_global_seed(19)
 
 
 def train_batch(crnn, data, optimizer, criterion):
