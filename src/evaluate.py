@@ -21,10 +21,7 @@ if __name__ == "__main__":
                         help="the checkpoint to reload",
                         required=True,
                         metavar="CHECKPOINT")
-    parser.add_argument("-l",
-                        "--lexicon_based",
-                        action="store_true",
-                        help="lexicon based method")
+    parser.add_argument("-l", "--lexicon_based", action="store_true", help="lexicon based method")
     parser.add_argument("-b",
                         "--eval_batch_size",
                         default=512,
@@ -74,8 +71,8 @@ from utils import not_real
 import pdb
 
 
-def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10):
-    if args.lexicon_based:
+def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10, lexicon_based=False):
+    if lexicon_based:
         bk_tree = load_BKTree()
     crnn.eval()
 
@@ -108,7 +105,7 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
             tot_count += batch_size
             tot_loss += loss.item()
             for pred, real, target_length in zip(preds, reals, target_lengths):
-                if args.lexicon_based:
+                if lexicon_based:
                     pred = ''.join([LABEL2CHAR[c] for c in pred])
                     pred = bk_tree.query(pred, 3).word
                     pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
@@ -150,7 +147,12 @@ def main():
 
     criterion = jt.CTCLoss(reduction='sum')
 
-    evaluation = evaluate(crnn, test_dataset, criterion, decode_method=args.decode_method, beam_size=args.beam_size)
+    evaluation = evaluate(crnn,
+                          test_dataset,
+                          criterion,
+                          decode_method=args.decode_method,
+                          beam_size=args.beam_size,
+                          lexicon_based=args.lexicon_based)
     print('test_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
 
 
