@@ -57,7 +57,7 @@ if __name__ == "__main__":
                         help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
                         metavar="DECODE METHOD")
     parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
-    parser.add_argument("-d", "--debug", action="store_true", help="enable debug")
+    parser.add_argument("-g", "--debug", action="store_true", help="enable debug")
     args = parser.parse_args()
 
 import jittor as jt
