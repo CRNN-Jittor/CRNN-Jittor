@@ -94,6 +94,7 @@ if __name__ == "__main__":
                         help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
                         metavar="DECODE METHOD")
     parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
+    parser.add_argument("-d", "--debug", action="store_true", help="enable debug")
     parser.add_argument("-s", "--seed", default=17, type=int, metavar="SEED", help="random number seed")
     args = parser.parse_args()
 
@@ -115,7 +116,7 @@ from utils import not_real
 import pdb
 
 
-def train_batch(crnn, data, optimizer, criterion):
+def train_batch(crnn, data, optimizer, criterion, debug=False):
     crnn.train()
     images, targets, target_lengths = [d for d in data]
 
@@ -125,7 +126,7 @@ def train_batch(crnn, data, optimizer, criterion):
     input_lengths = jt.int64([log_probs.size(0)] * batch_size)
 
     loss = criterion(log_probs, targets, input_lengths, target_lengths)
-    if not_real(loss):
+    if debug and not_real(loss):
         pdb.set_trace()
     optimizer.step(loss)
     return loss.item()
@@ -175,7 +176,7 @@ def main():
         tot_train_loss = 0.
         tot_train_count = 0
         for train_data in train_dataset:
-            loss = train_batch(crnn, train_data, optimizer, criterion)
+            loss = train_batch(crnn, train_data, optimizer, criterion, debug=args.debug)
             train_size = train_data[0].size(0)
 
             tot_train_loss += loss
@@ -189,17 +190,22 @@ def main():
                                       criterion,
                                       max_iter=args.valid_max_iter,
                                       decode_method=args.decode_method,
-                                      beam_size=args.beam_size)
-                loss = evaluation['loss']
+                                      beam_size=args.beam_size,
+                                      debug=args.debug)
+                eval_loss = evaluation['loss']
                 acc = evaluation['acc']
-                print(f'valid_evaluation: loss={loss}, acc={acc}')
+                print(f'valid_evaluation: loss={eval_loss}, acc={acc}')
 
                 if i % args.save_interval == 0:
-                    save_model_path = os.path.join(args.checkpoints_dir, f'crnn_{i:06}_acc-{acc}_loss-{loss}.pkl')
+                    save_model_path = os.path.join(args.checkpoints_dir, f'crnn_{i:06}_acc-{acc}_loss-{eval_loss}.pkl')
                     crnn.save(save_model_path)
                     print('save model at ', save_model_path)
 
             i += 1
+            if args.debug:
+                prev_crnn = crnn
+                prev_data = train_data
+                prev_loss = loss
 
         print('train_loss: ', tot_train_loss / tot_train_count)
 

@@ -57,6 +57,7 @@ if __name__ == "__main__":
                         help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
                         metavar="DECODE METHOD")
     parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
+    parser.add_argument("-d", "--debug", action="store_true", help="enable debug")
     args = parser.parse_args()
 
 import jittor as jt
@@ -71,7 +72,14 @@ from utils import not_real
 import pdb
 
 
-def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search', beam_size=10, lexicon_based=False):
+def evaluate(crnn,
+             dataset,
+             criterion,
+             max_iter=None,
+             decode_method='beam_search',
+             beam_size=10,
+             lexicon_based=False,
+             debug=False):
     if lexicon_based:
         bk_tree = load_BKTree()
     crnn.eval()
@@ -95,7 +103,7 @@ def evaluate(crnn, dataset, criterion, max_iter=None, decode_method='beam_search
             input_lengths = jt.int64([log_probs.size(0)] * batch_size)
 
             loss = criterion(log_probs, targets, input_lengths, target_lengths)
-            if not_real(loss):
+            if debug and not_real(loss):
                 pdb.set_trace()
 
             preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size)
@@ -152,7 +160,8 @@ def main():
                           criterion,
                           decode_method=args.decode_method,
                           beam_size=args.beam_size,
-                          lexicon_based=args.lexicon_based)
+                          lexicon_based=args.lexicon_based,
+                          debug=args.debug)
     print('test_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
 
 
