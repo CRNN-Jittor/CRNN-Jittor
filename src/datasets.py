@@ -41,6 +41,7 @@ class Synth90k(Dataset):
         self.total_len = len(self.img_paths)
         self.img_height = img_height
         self.img_width = img_width
+        self.mode = mode
 
     def _load_from_raw_files(self, root_dir, mode):
         mapping = {}
@@ -93,13 +94,19 @@ class Synth90k(Dataset):
             target = jt.int64(target)
             target_length = jt.int64(target_length)
 
-            lex_path = ""
-            return image, target, target_length, lex_path
+            if self.mode == "train":
+                return image, target, target_length
+            else:
+                lex_path = ""
+                return image, target, target_length, lex_path
         else:
             return image
 
     def collate_batch(self, batch):
-        images, targets, target_lengths, lex_paths = zip(*batch)
+        if self.mode == "train":
+            images, targets, target_lengths = zip(*batch)
+        else:
+            images, targets, target_lengths, lex_paths = zip(*batch)
         images = jt.stack(images, dim=0)
 
         target_lengths = jt.concat(target_lengths, dim=0)
@@ -108,7 +115,10 @@ class Synth90k(Dataset):
         targets = [t.reindex([max_target_length.item()], ["i0"]) for t in targets]
         targets = jt.stack(targets, dim=0)
 
-        return images, targets, target_lengths, lex_paths
+        if self.mode == "train":
+            return images, targets, target_lengths
+        else:
+            return images, targets, target_lengths, lex_paths
 
 
 class PredictDataset(Dataset):
@@ -153,6 +163,7 @@ class PredictDataset(Dataset):
 
         image = jt.float32(image)
         return image
+
 
 class IIIT5K(Dataset):
     def __init__(self,
@@ -319,8 +330,7 @@ class IC13(Dataset):
         section = self.sections[index]
         try:
             image = Image.open(img_path).convert('L')  # grey-scale
-            box = (section['x'], section['y'], section['x'] + section['width'],
-                   section['y'] + section['height'])
+            box = (section['x'], section['y'], section['x'] + section['width'], section['y'] + section['height'])
             image = image.crop(box)
         except IOError:
             print('Corrupted image for %d' % index)
@@ -356,6 +366,7 @@ class IC13(Dataset):
         targets = jt.stack(targets, dim=0)
 
         return images, targets, target_lengths, lex_paths
+
 
 class IC03(Dataset):
     def __init__(self,
@@ -421,8 +432,7 @@ class IC03(Dataset):
         section = self.sections[index]
         try:
             image = Image.open(img_path).convert('L')  # grey-scale
-            box = (section['x'], section['y'], section['x'] + section['width'],
-                   section['y'] + section['height'])
+            box = (section['x'], section['y'], section['x'] + section['width'], section['y'] + section['height'])
             image = image.crop(box)
         except IOError:
             print('Corrupted image for %d' % index)
@@ -531,8 +541,7 @@ class IC15(Dataset):
         section = self.sections[index]
         try:
             image = Image.open(img_path).convert('L')  # grey-scale
-            box = (section['x'], section['y'], section['x'] + section['width'],
-                   section['y'] + section['height'])
+            box = (section['x'], section['y'], section['x'] + section['width'], section['y'] + section['height'])
             image = image.crop(box)
         except IOError:
             print('Corrupted image for %d' % index)
@@ -633,8 +642,7 @@ class SVT(Dataset):
         section = self.sections[index]
         try:
             image = Image.open(img_path).convert('L')  # grey-scale
-            box = (section['x'], section['y'], section['x'] + section['width'],
-                   section['y'] + section['height'])
+            box = (section['x'], section['y'], section['x'] + section['width'], section['y'] + section['height'])
             image = image.crop(box)
         except IOError:
             print('Corrupted image for %d' % index)
