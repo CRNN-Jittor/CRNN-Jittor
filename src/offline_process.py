@@ -23,6 +23,8 @@ def SVT_lexicon():
                 imageName = str(imageNames[idx].text)
                 word_list = str(lexicons[idx].text).lower().split(',')
                 bk_tree_path = os.path.join(lexicons_path, "SVT", imageName[4:-4] + '.pkl')
+                if os.path.exists(bk_tree_path):
+                    continue
                 root_word_idx = random.randint(0, len(word_list) - 1)
                 bk_tree = BKTree(word_list[root_word_idx])
                 print("[*] Begin building BK tree...")
@@ -38,6 +40,8 @@ def SVT_lexicon():
 def default_50k_lexicon():
     lexicon_path = os.path.join(datasets_path, 'lexicon.txt')
     bk_tree_path = os.path.join(lexicons_path, '50k.pkl')
+    if os.path.exists(bk_tree_path):
+        return
     word_list = []
     with open(lexicon_path, 'r', encoding="ISO-8859-1") as fr:
         for line in fr.readlines():
@@ -55,3 +59,7 @@ def default_50k_lexicon():
         sys.stdout.flush()
         bk_tree.put(word)
     dump_BKTree(bk_tree, bk_tree_path)
+
+if __name__ == "__main__":
+    default_50k_lexicon()
+    

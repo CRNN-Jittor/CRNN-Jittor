@@ -87,38 +87,19 @@ class BKTree:
                 queries.sort(key = lambda x: x.distance, reverse=False)
                 return queries[0]
 
-def dump_BKTree(bk_tree):
+def dump_BKTree(bk_tree, bk_tree_path):
     with open(bk_tree_path, 'wb') as f:
         pickle.dump(bk_tree, f)
 
-def load_BKTree():
+def load_BKTree(specified=""):
+    if not specified:
+        bk_tree_path = os.path.join(lexicons_path, '50k.pkl')
+    else:
+        bk_tree_path = os.path.join(lexicons_path, specified)
     if os.path.exists(bk_tree_path):
         print("[*] Load BK tree")
         with open(bk_tree_path, 'rb') as f:
             return pickle.load(f)
-    else:
-        word_list = []
-        with open(lexicon_path, 'r', encoding="ISO-8859-1") as fr:
-            for line in fr.readlines():
-                word = str(line).strip()
-                if word != word.lower():
-                    continue
-                word_list.append(word)
-        root_word_idx = random.randint(0, len(word_list) - 1)
-        bk_tree = BKTree(word_list[root_word_idx])
-        print("[*] Begin building BK tree...")
-        for idx, word in enumerate(word_list):
-            process = float(idx * 100.0 / len(word_list))
-            print("\r")
-            print("Building Process: %.2f%% " % process,
-                    "▋" * (int(process) // 2))
-            sys.stdout.flush()
-            bk_tree.put(word)
-        dump_BKTree(bk_tree)
-        return bk_tree
 
 if __name__ == "__main__":
-    if not os.path.exists(bk_tree_path):
-        load_BKTree()
-    else:
-        print("Please import this module")
+    print("Please import this module")
