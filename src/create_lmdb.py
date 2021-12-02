@@ -62,7 +62,6 @@ def createDataset(DBPath: str, imagePathList, labelList, pbar_desc: str, lexicon
         if cnt % 10000 == 0:
             writeCache(env, cache)
             cache = {}
-            print('Written %d / %d' % (cnt, nSamples))
         cnt += 1
 
     nSamples = cnt - 1
