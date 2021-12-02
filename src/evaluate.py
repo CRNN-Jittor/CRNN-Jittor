@@ -118,7 +118,8 @@ def evaluate(crnn,
                     if lex_path:
                         bk_tree = load_BKTree(lex_path)
                     pred = ''.join([LABEL2CHAR[c] for c in pred])
-                    pred = bk_tree.query(pred, 3).word
+                    if pred.isalpha():
+                        pred = bk_tree.query(pred, 3).word
                     pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
                 real = real[:target_length]
                 if pred == real:
