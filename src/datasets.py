@@ -2,7 +2,6 @@ import os
 import re
 
 import jittor as jt
-import jittor_utils
 from jittor.dataset import Dataset
 
 from PIL import Image
