@@ -164,7 +164,7 @@ def main():
             crnn.load_state_dict(torch.load(args.reload_checkpoint, map_location="cpu"))
         else:
             crnn.load(args.reload_checkpoint)
-            i += int(args.reload_checkpoint[5:11])
+            i += int(args.reload_checkpoint.split("/")[-1][5:11])
     print("i = ", i)
 
     optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
