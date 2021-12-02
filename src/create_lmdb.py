@@ -19,7 +19,7 @@ def createDataset(DBPath: str, imagePathList, labelList, pbar_desc: str, lexicon
     ARGS:
         DBPath    : LMDB path
         imagePathList : list of image path
-        labelList     : list of corresponding groundtruth texts
+        labelList     : list of corresponding groundtruth texts in `bytes`
         lexiconList   : (optional) list of lexicon lists
         checkValid    : if true, check the validity of every image
     """
@@ -76,6 +76,12 @@ def createDataset(DBPath: str, imagePathList, labelList, pbar_desc: str, lexicon
 
 def createSynth90k():
     dataset_path = os.path.join(datasets_path, "Synth90k")
+
+    lex_list = []
+    with open(os.path.join(dataset_path, "lexicon.txt"), "r") as f:
+        for line in f.readlines():
+            lex_list.append(line.strip().encode())
+
     for phase in ["test", "val", "train"]:
         DBName = "Synth90k_" + phase
         DBPath = os.path.join(datasets_path, DBName)
@@ -87,12 +93,12 @@ def createSynth90k():
                 line = line.strip()
                 if len(line) == 0:
                     continue
-                img_rel_path, _ = line.split(' ')
+                img_rel_path, lex_index = line.split(' ')
 
                 image_path = os.path.join(dataset_path, img_rel_path)
                 imagePathList.append(image_path)
 
-                label = img_rel_path.split('_')[1].encode()
+                label = lex_list[int(lex_index)]
                 labelList.append(label)
 
         createDataset(DBPath, imagePathList, labelList, DBName)
