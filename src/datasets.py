@@ -214,6 +214,9 @@ class IIIT5K(Dataset):
             path = data_dict[i]['ImgName']
             path = os.path.join(root_dir, path[0])
             text = str(data_dict[i]['GroundTruth'][0]).lower()
+            text = ''.join(filter(str.isalnum, text))
+            if (text == ""):
+                continue
             paths.append(path)
             texts.append(text)
         return paths, texts
@@ -317,7 +320,8 @@ class IC13(Dataset):
                         width = int(str(res[2]).strip()) - x
                         height = int(str(res[3]).strip()) - y
                         tag = str(res[4]).strip().lower()
-                        if (tag == "###"):
+                        tag = ''.join(filter(str.isalnum, tag))
+                        if (tag == ""):
                             continue
                         image_paths.append(img_path)
                         sections.append({"x": x, "y": y, "width": width, "height": height})
@@ -419,11 +423,12 @@ class IC03(Dataset):
                     height = float(item.get('height'))
                     width = float(item.get('width'))
                     tag = item.find("tag")
-                    if (tag == "###"):
+                    tag = ''.join(filter(str.isalnum, str(tag.text).lower()))
+                    if (tag == ""):
                         continue
                     image_paths.append(image_path)
                     sections.append({"x": x, "y": y, "height": height, "width": width})
-                    texts.append(str(tag.text).lower())
+                    texts.append(tag)
 
         return image_paths, sections, texts
 
@@ -528,7 +533,8 @@ class IC15(Dataset):
                         width = int(str(res[4]).strip()) - x
                         height = int(str(res[5]).strip()) - y
                         tag = str(res[8]).strip().lower()
-                        if (tag == "###"):
+                        tag = ''.join(filter(str.isalnum, tag))
+                        if (tag == ""):
                             continue
                         img_paths.append(img_path)
                         sections.append({"x": x, "y": y, "width": width, "height": height})
@@ -629,11 +635,12 @@ class SVT(Dataset):
                     height = float(item.get('height'))
                     width = float(item.get('width'))
                     tag = item.find("tag")
-                    if (tag == "###"):
+                    tag = ''.join(filter(str.isalnum, str(tag.text).lower()))
+                    if (tag == ""):
                         continue
                     image_paths.append(image_path)
                     sections.append({"x": x, "y": y, "height": height, "width": width})
-                    texts.append(str(tag.text).lower())
+                    texts.append(tag)
 
         return image_paths, sections, texts
 
