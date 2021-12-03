@@ -5,9 +5,9 @@ from config import datasets_path
 parser = ArgumentParser()
 parser.add_argument("-e",
                     "--epochs",
-                    default=10000,
+                    default=100,
                     type=int,
-                    help="max epochs to train [default: 10000]",
+                    help="max epochs to train [default: 100]",
                     metavar="EPOCHS")
 parser.add_argument("-b",
                     "--train_batch_size",
@@ -24,14 +24,14 @@ parser.add_argument("-B",
 parser.add_argument("-l",
                     "--lr",
                     "--learning_rate",
-                    default=0.0005,
+                    default=0.0001,
                     type=float,
-                    help="learning rate [default: 0.0005]",
+                    help="learning rate [default: 0.0001]",
                     metavar="LEARNING RATE")
 parser.add_argument("--show_interval",
                     default=100,
                     type=int,
-                    help="number of batches between each 2 loss display [default: 10]",
+                    help="number of batches between each 2 loss display [default: 100]",
                     metavar="SHOW INTERVAL")
 parser.add_argument("--valid_interval",
                     default=2000,
@@ -95,7 +95,7 @@ parser.add_argument("--decode_method",
                     metavar="DECODE METHOD")
 parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
 parser.add_argument("-g", "--debug", action="store_true", help="enable debug")
-parser.add_argument("-s", "--seed", default=17, type=int, metavar="SEED", help="random number seed")
+parser.add_argument("-s", "--seed", default=23, type=int, metavar="SEED", help="random number seed [default: 23]")
 args = parser.parse_args()
 
 from tqdm import tqdm
