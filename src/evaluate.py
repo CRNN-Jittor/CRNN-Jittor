@@ -64,7 +64,8 @@ if __name__ == "__main__":
 import jittor as jt
 from tqdm import tqdm
 
-from datasets import *
+from datasets import Synth90k, IC03, IC13, IC15, IIIT5K, SVT, LABEL2CHAR, CHAR2LABEL, CHARS
+from lmdb_datasets import Synth90k_lmdb
 from model import CRNN
 from ctc_decoder import ctc_decode
 from BKtree import *
@@ -207,15 +208,23 @@ def main():
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
 
-    dataset_path = os.path.join(args.datasets_path, args.dataset)
-
-    test_dataset = eval(args.dataset)(root_dir=dataset_path,
-                                      mode='test',
-                                      img_height=args.img_height,
-                                      img_width=args.img_width,
-                                      batch_size=args.eval_batch_size,
-                                      shuffle=False,
-                                      num_workers=args.cpu_workers)
+    if args.no_lmdb:
+        dataset_path = os.path.join(args.datasets_path, args.dataset)
+        test_dataset = eval(args.dataset)(root_dir=dataset_path,
+                                          mode='test',
+                                          img_height=args.img_height,
+                                          img_width=args.img_width,
+                                          batch_size=args.eval_batch_size,
+                                          shuffle=False,
+                                          num_workers=args.cpu_workers)
+    else:
+        test_dataset = eval(args.dataset + "_lmdb")(mode='test',
+                                                    datasets_root=datasets_path,
+                                                    img_height=args.img_height,
+                                                    img_width=args.img_width,
+                                                    batch_size=args.eval_batch_size,
+                                                    shuffle=False,
+                                                    num_workers=args.cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1, args.img_height, args.img_width, num_class, rnn_hidden=rnn_hidden)
