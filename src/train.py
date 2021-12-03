@@ -2,114 +2,115 @@ from argparse import ArgumentParser
 import os
 from config import datasets_path
 
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("-e",
-                        "--epochs",
-                        default=10000,
-                        type=int,
-                        help="max epochs to train [default: 10000]",
-                        metavar="EPOCHS")
-    parser.add_argument("-b",
-                        "--train_batch_size",
-                        default=32,
-                        type=int,
-                        help="train batch size [default: 32]",
-                        metavar="TRAIN BATCH SIZE")
-    parser.add_argument("-B",
-                        "--valid_batch_size",
-                        default=512,
-                        type=int,
-                        help="validation batch size [default: 512]",
-                        metavar="VALID BATCH SIZE")
-    parser.add_argument("-l",
-                        "--lr",
-                        "--learning_rate",
-                        default=0.0005,
-                        type=float,
-                        help="learning rate [default: 0.0005]",
-                        metavar="LEARNING RATE")
-    parser.add_argument("--show_interval",
-                        default=10,
-                        type=int,
-                        help="number of batches between each 2 loss display [default: 10]",
-                        metavar="SHOW INTERVAL")
-    parser.add_argument("--valid_interval",
-                        default=2000,
-                        type=int,
-                        help="number of batches between each 2 evaluation on validation set [default: 2000]",
-                        metavar="VALID INTERVAL")
-    parser.add_argument("--save_interval",
-                        default=2000,
-                        type=int,
-                        help="number of batches between each 2 savings of model state_dict [default: 2000]",
-                        metavar="SAVE INTERVAL")
-    parser.add_argument("-n",
-                        "--cpu_workers",
-                        default=16,
-                        type=int,
-                        help="number of cpu workers used to load data [default: 16]",
-                        metavar="CPU WORKERS")
-    parser.add_argument("-r",
-                        "--reload_checkpoint",
-                        default=None,
-                        type=str,
-                        help="the checkpoint to reload [default: None]",
-                        metavar="CHECKPOINT")
-    parser.add_argument("-H",
-                        "--img_height",
-                        default=32,
-                        type=int,
-                        help="image height [default: 32]",
-                        metavar="IMAGE HEIGHT")
-    parser.add_argument("-W",
-                        "--img_width",
-                        default=100,
-                        type=int,
-                        help="image width [default: 100]",
-                        metavar="IMAGE WIDTH")
-    parser.add_argument("--data_dir",
-                        default=os.path.join(datasets_path, "Synth90k/"),
-                        type=str,
-                        help="root directory to Synth90k [default: ../data/Synth90k/]",
-                        metavar="DATA DIR")
-    parser.add_argument("--checkpoints_dir",
-                        default=os.path.join(os.path.dirname(__file__), "../checkpoints/"),
-                        type=str,
-                        help="directory to save checkpoints [default: ../checkpoints/]",
-                        metavar="CHECKPOINTS DIR")
-    parser.add_argument("--cpu",
-                        action="store_true",
-                        help="use cpu for all computation, default to enable cuda when possible")
-    parser.add_argument("--no_shuffle", action="store_true", help="do not shuffle the dataset when training")
-    parser.add_argument("--valid_max_iter",
-                        default=100,
-                        type=int,
-                        help="max iterations when evaluating the validation set [default: 100]",
-                        metavar="VALID MAX ITER")
-    parser.add_argument("--decode_method",
-                        default="greedy",
-                        type=str,
-                        choices=["greedy", "beam_search", "prefix_beam_search"],
-                        help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
-                        metavar="DECODE METHOD")
-    parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
-    parser.add_argument("-g", "--debug", action="store_true", help="enable debug")
-    parser.add_argument("-s", "--seed", default=17, type=int, metavar="SEED", help="random number seed")
-    args = parser.parse_args()
+parser = ArgumentParser()
+parser.add_argument("-e",
+                    "--epochs",
+                    default=10000,
+                    type=int,
+                    help="max epochs to train [default: 10000]",
+                    metavar="EPOCHS")
+parser.add_argument("-b",
+                    "--train_batch_size",
+                    default=32,
+                    type=int,
+                    help="train batch size [default: 32]",
+                    metavar="TRAIN BATCH SIZE")
+parser.add_argument("-B",
+                    "--valid_batch_size",
+                    default=512,
+                    type=int,
+                    help="validation batch size [default: 512]",
+                    metavar="VALID BATCH SIZE")
+parser.add_argument("-l",
+                    "--lr",
+                    "--learning_rate",
+                    default=0.0005,
+                    type=float,
+                    help="learning rate [default: 0.0005]",
+                    metavar="LEARNING RATE")
+parser.add_argument("--show_interval",
+                    default=100,
+                    type=int,
+                    help="number of batches between each 2 loss display [default: 10]",
+                    metavar="SHOW INTERVAL")
+parser.add_argument("--valid_interval",
+                    default=2000,
+                    type=int,
+                    help="number of batches between each 2 evaluation on validation set [default: 2000]",
+                    metavar="VALID INTERVAL")
+parser.add_argument("--save_interval",
+                    default=2000,
+                    type=int,
+                    help="number of batches between each 2 savings of model state_dict [default: 2000]",
+                    metavar="SAVE INTERVAL")
+parser.add_argument("-n",
+                    "--cpu_workers",
+                    default=16,
+                    type=int,
+                    help="number of cpu workers used to load data [default: 16]",
+                    metavar="CPU WORKERS")
+parser.add_argument("-r",
+                    "--reload_checkpoint",
+                    default=None,
+                    type=str,
+                    help="the checkpoint to reload [default: None]",
+                    metavar="CHECKPOINT")
+parser.add_argument("-H",
+                    "--img_height",
+                    default=32,
+                    type=int,
+                    help="image height [default: 32]",
+                    metavar="IMAGE HEIGHT")
+parser.add_argument("-W",
+                    "--img_width",
+                    default=100,
+                    type=int,
+                    help="image width [default: 100]",
+                    metavar="IMAGE WIDTH")
+parser.add_argument("--data_dir",
+                    default=os.path.join(datasets_path, "Synth90k/"),
+                    type=str,
+                    help="root directory to Synth90k [default: ../data/Synth90k/]",
+                    metavar="DATA DIR")
+parser.add_argument("--no_lmdb", action="store_true", help="do not use lmdb, directly load datasets from file")
+parser.add_argument("--checkpoints_dir",
+                    default=os.path.join(os.path.dirname(__file__), "../checkpoints/"),
+                    type=str,
+                    help="directory to save checkpoints [default: ../checkpoints/]",
+                    metavar="CHECKPOINTS DIR")
+parser.add_argument("--cpu",
+                    action="store_true",
+                    help="use cpu for all computation, default to enable cuda when possible")
+parser.add_argument("--no_shuffle", action="store_true", help="do not shuffle the dataset when training")
+parser.add_argument("--valid_max_iter",
+                    default=100,
+                    type=int,
+                    help="max iterations when evaluating the validation set [default: 100]",
+                    metavar="VALID MAX ITER")
+parser.add_argument("--decode_method",
+                    default="greedy",
+                    type=str,
+                    choices=["greedy", "beam_search", "prefix_beam_search"],
+                    help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
+                    metavar="DECODE METHOD")
+parser.add_argument("--beam_size", default=10, type=int, help="beam size [default: 10]", metavar="BEAM SIZE")
+parser.add_argument("-g", "--debug", action="store_true", help="enable debug")
+parser.add_argument("-s", "--seed", default=17, type=int, metavar="SEED", help="random number seed")
+args = parser.parse_args()
 
+from tqdm import tqdm
 import jittor as jt
 from jittor import optim
 
 jt.set_global_seed(args.seed)
 
-import numpy as np
-
-np.random.seed(args.seed)
-
 from datasets import Synth90k, LABEL2CHAR
+if args.no_lmdb:
+    from evaluate import evaluate_no_lmdb as evaluate
+else:
+    from lmdb_datasets import Synth90k_lmdb
+    from evaluate import evaluate
 from model import CRNN
-from evaluate import evaluate
 from config import rnn_hidden
 
 from utils import not_real
@@ -139,20 +140,36 @@ def main():
         pass
     print(f'use_cuda: {jt.flags.use_cuda}')
 
-    train_dataset = Synth90k(root_dir=args.data_dir,
-                             mode='train',
-                             img_height=args.img_height,
-                             img_width=args.img_width,
-                             batch_size=args.train_batch_size,
-                             shuffle=not args.no_shuffle,
-                             num_workers=args.cpu_workers)
-    valid_dataset = Synth90k(root_dir=args.data_dir,
-                             mode='valid',
-                             img_height=args.img_height,
-                             img_width=args.img_width,
-                             batch_size=args.valid_batch_size,
-                             shuffle=not args.no_shuffle,
-                             num_workers=args.cpu_workers)
+    if args.no_lmdb:
+        train_dataset = Synth90k(root_dir=args.data_dir,
+                                 mode='train',
+                                 img_height=args.img_height,
+                                 img_width=args.img_width,
+                                 batch_size=args.train_batch_size,
+                                 shuffle=not args.no_shuffle,
+                                 num_workers=args.cpu_workers)
+        valid_dataset = Synth90k(root_dir=args.data_dir,
+                                 mode='valid',
+                                 img_height=args.img_height,
+                                 img_width=args.img_width,
+                                 batch_size=args.valid_batch_size,
+                                 shuffle=not args.no_shuffle,
+                                 num_workers=args.cpu_workers)
+    else:
+        train_dataset = Synth90k_lmdb(mode='train',
+                                      datasets_root=datasets_path,
+                                      img_height=args.img_height,
+                                      img_width=args.img_width,
+                                      batch_size=args.train_batch_size,
+                                      shuffle=not args.no_shuffle,
+                                      num_workers=args.cpu_workers)
+        valid_dataset = Synth90k_lmdb(mode='valid',
+                                      datasets_root=datasets_path,
+                                      img_height=args.img_height,
+                                      img_width=args.img_width,
+                                      batch_size=args.valid_batch_size,
+                                      shuffle=not args.no_shuffle,
+                                      num_workers=args.cpu_workers)
 
     num_class = len(LABEL2CHAR) + 1
     crnn = CRNN(1, args.img_height, args.img_width, num_class, rnn_hidden=rnn_hidden)
@@ -165,11 +182,12 @@ def main():
         else:
             crnn.load(args.reload_checkpoint)
             i += int(args.reload_checkpoint.split("/")[-1][5:11])
-    print("i = ", i)
+    print("i =", i)
 
     optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
     criterion = jt.CTCLoss(reduction='sum')
 
+    pbar = tqdm(desc="Trained Batches")
     assert args.save_interval % args.valid_interval == 0
     for epoch in range(1, args.epochs + 1):
         print(f'epoch: {epoch}')
@@ -182,7 +200,9 @@ def main():
             tot_train_loss += loss
             tot_train_count += train_size
             if i % args.show_interval == 0:
-                print('train_batch_loss[', i, ']: ', loss / train_size)
+                print('\ttrain_batch_loss[', i, ']: ', loss / train_size)
+                pbar.update(args.show_interval)
+                print()
 
             if i % args.valid_interval == 0:
                 evaluation = evaluate(crnn,
@@ -202,12 +222,9 @@ def main():
                     print('save model at ', save_model_path)
 
             i += 1
-            if args.debug:
-                prev_crnn = crnn
-                prev_data = train_data
-                prev_loss = loss
 
         print('train_loss: ', tot_train_loss / tot_train_count)
+    pbar.close()
 
 
 if __name__ == '__main__':

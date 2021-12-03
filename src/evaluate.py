@@ -15,6 +15,7 @@ if __name__ == "__main__":
                         type=str,
                         help="parent path of all datasets",
                         metavar="DATASETS PATH")
+    parser.add_argument("--no_lmdb", action="store_true", help="do not use lmdb, directly load datasets from file")
     parser.add_argument("-r",
                         "--reload_checkpoint",
                         type=str,
@@ -80,6 +81,73 @@ def evaluate(crnn,
              beam_size=10,
              lexicon_based=False,
              debug=False):
+    crnn.eval()
+
+    tot_count = 0
+    tot_loss = 0
+    tot_correct = 0
+    use_word_lex = dataset.use_word_lex
+
+    with jt.no_grad():
+        pbar_total = max_iter if max_iter else len(dataset)
+        pbar = tqdm(total=pbar_total, desc="Evaluate")
+        for i, data in enumerate(dataset):
+            if max_iter and i >= max_iter:
+                break
+            if use_word_lex:
+                images, targets, target_lengths, lex_bins = data
+            else:
+                images, targets, target_lengths = data
+
+            if lexicon_based and not use_word_lex:
+                bk_tree = load_BKTree()
+
+            log_probs = crnn(images)
+
+            batch_size = images.size(0)
+            input_lengths = jt.int64([log_probs.size(0)] * batch_size)
+
+            loss = criterion(log_probs, targets, input_lengths, target_lengths)
+            if debug and not_real(loss):
+                pdb.set_trace()
+
+            preds = ctc_decode(log_probs.numpy(), method=decode_method, beam_size=beam_size)
+            reals = targets.numpy().tolist()
+            target_lengths = target_lengths.numpy().tolist()
+
+            tot_count += batch_size
+            tot_loss += loss.item()
+            for j in range(len(preds)):
+                pred = preds[j]
+                real = reals[j]
+                target_length = target_lengths[j]
+                if lexicon_based:
+                    if use_word_lex:
+                        lex_bin = lex_bins[j]
+                        bk_tree = loads_BKTree(lex_bin)
+                    pred = ''.join([LABEL2CHAR[c] for c in pred])
+                    if pred.isalpha():
+                        pred = bk_tree.query(pred, 3).word
+                    pred = [CHAR2LABEL[c] for c in pred if c in CHARS]
+                real = real[:target_length]
+                if pred == real:
+                    tot_correct += 1
+
+            pbar.update(1)
+        pbar.close()
+
+    evaluation = {'loss': tot_loss / tot_count, 'acc': tot_correct / tot_count}
+    return evaluation
+
+
+def evaluate_no_lmdb(crnn,
+                     dataset,
+                     criterion,
+                     max_iter=None,
+                     decode_method='beam_search',
+                     beam_size=10,
+                     lexicon_based=False,
+                     debug=False):
     crnn.eval()
 
     tot_count = 0
@@ -159,13 +227,22 @@ def main():
 
     criterion = jt.CTCLoss(reduction='sum')
 
-    evaluation = evaluate(crnn,
-                          test_dataset,
-                          criterion,
-                          decode_method=args.decode_method,
-                          beam_size=args.beam_size,
-                          lexicon_based=args.lexicon_based,
-                          debug=args.debug)
+    if args.no_lmdb:
+        evaluation = evaluate_no_lmdb(crnn,
+                                      test_dataset,
+                                      criterion,
+                                      decode_method=args.decode_method,
+                                      beam_size=args.beam_size,
+                                      lexicon_based=args.lexicon_based,
+                                      debug=args.debug)
+    else:
+        evaluation = evaluate(crnn,
+                              test_dataset,
+                              criterion,
+                              decode_method=args.decode_method,
+                              beam_size=args.beam_size,
+                              lexicon_based=args.lexicon_based,
+                              debug=args.debug)
     print('test_evaluation: loss={loss}, acc={acc}'.format(**evaluation))
 
 

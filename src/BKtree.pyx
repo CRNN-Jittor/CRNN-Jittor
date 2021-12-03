@@ -101,5 +101,8 @@ def load_BKTree(specified=""):
         with open(bk_tree_path, 'rb') as f:
             return pickle.load(f)
 
+def loads_BKTree(bin: bytes):
+    return pickle.load(bin)
+
 if __name__ == "__main__":
     print("Please import this module")
