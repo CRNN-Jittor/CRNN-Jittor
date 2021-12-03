@@ -1,3 +1,4 @@
+from shutil import Error
 import jittor as jt
 from jittor.dataset import Dataset
 import lmdb
@@ -64,11 +65,17 @@ class LMDBDataset(Dataset):
             imageBin = txn.get(imageKey)
             labelBin = txn.get(labelKey)
 
-        imageBuf = np.frombuffer(imageBin, dtype=np.uint8)
         try:
+            imageBuf = np.frombuffer(imageBin, dtype=np.uint8)
             image = cv2.imdecode(imageBuf, cv2.IMREAD_GRAYSCALE)
         except IOError:
             print('Corrupted image for %d' % index)
+            return self[index + 1]
+        except TypeError as err:
+            print("TypeError for image {0}: {1}".format(index, err))
+            return self[index + 1]
+        except Exception as err:
+            print(f"Unknown exception for image {index}: {err=}")
             return self[index + 1]
         image = cv2.resize(image, (self.img_width, self.img_height), interpolation=cv2.INTER_LINEAR)
         image = image.reshape((1, self.img_height, self.img_width))
