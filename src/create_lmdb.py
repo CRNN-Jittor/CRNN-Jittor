@@ -27,7 +27,7 @@ def createDataset(DBPath: str, imagePathList, labelList, pbar_desc: str, lexicon
     nSamples = len(imagePathList)
     env = lmdb.open(DBPath, map_size=1099511627776)
     cache = {}
-    cnt = 1
+    index = 0
     pbar = tqdm(desc=pbar_desc, total=nSamples)
     for i in range(nSamples):
         if i > 0 and i % 10000 == 0:
@@ -52,19 +52,19 @@ def createDataset(DBPath: str, imagePathList, labelList, pbar_desc: str, lexicon
             print('%s is not a valid image' % imagePath)
             continue
 
-        imageKey = b'image-%09d' % cnt
-        labelKey = b'label-%09d' % cnt
+        imageKey = b'image-%09d' % index
+        labelKey = b'label-%09d' % index
         cache[imageKey] = imageBin
         cache[labelKey] = label
         if lexiconList:
-            lexiconKey = 'lexicon-%09d' % cnt
+            lexiconKey = 'lexicon-%09d' % index
             cache[lexiconKey] = ' '.join(lexiconList[i])
-        if cnt % 10000 == 0:
+        if (index + 1) % 10000 == 0:
             writeCache(env, cache)
             cache = {}
-        cnt += 1
+        index += 1
 
-    nSamples = cnt - 1
+    nSamples = index
     writeCache(env, cache)
     pbar.update((i + 1) % 10000)
     pbar.close()
