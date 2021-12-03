@@ -134,3 +134,4 @@ dmypy.json
 checkpoints/
 test/
 output/
+lexicon/
