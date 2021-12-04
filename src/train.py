@@ -181,7 +181,7 @@ def main():
             crnn.load_state_dict(torch.load(args.reload_checkpoint, map_location="cpu"))
         else:
             crnn.load(args.reload_checkpoint)
-            i += int(args.reload_checkpoint.split("/")[-1][5:11])
+            i += int(args.reload_checkpoint.split("/")[-1].split("_")[1])
     print("i =", i)
 
     optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
@@ -217,7 +217,7 @@ def main():
                 print(f'valid_evaluation: loss={eval_loss}, acc={acc}')
 
                 if i % args.save_interval == 0:
-                    save_model_path = os.path.join(args.checkpoints_dir, f'crnn_{i:06}_acc-{acc}_loss-{eval_loss}.pkl')
+                    save_model_path = os.path.join(args.checkpoints_dir, f'crnn_{i:010}_acc-{acc}_loss-{eval_loss}.pkl')
                     crnn.save(save_model_path)
                     print('save model at ', save_model_path)
 
