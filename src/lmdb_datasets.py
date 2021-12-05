@@ -75,7 +75,7 @@ class LMDBDataset(Dataset):
             print("TypeError for image {0}: {1}".format(index, err))
             return self[index + 1]
         except Exception as err:
-            print(f"Unknown exception for image {index}: {err=}")
+            print(f"Unknown exception for image {index}: {err}")
             return self[index + 1]
         image = cv2.resize(image, (self.img_width, self.img_height), interpolation=cv2.INTER_LINEAR)
         image = image.reshape((1, self.img_height, self.img_width))
