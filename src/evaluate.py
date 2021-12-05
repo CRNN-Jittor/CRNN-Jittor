@@ -52,7 +52,7 @@ if __name__ == "__main__":
                         metavar="IMAGE WIDTH")
     parser.add_argument("-d",
                         "--decode_method",
-                        default="beam_search",
+                        default="greedy",
                         type=str,
                         choices=["greedy", "beam_search", "prefix_beam_search"],
                         help="decode method (greedy, beam_search or prefix_beam_search) [default: greedy]",
