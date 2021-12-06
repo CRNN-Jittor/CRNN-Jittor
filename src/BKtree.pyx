@@ -97,7 +97,6 @@ def load_BKTree(specified=""):
     else:
         bk_tree_path = os.path.join(lexicons_path, specified)
     if os.path.exists(bk_tree_path):
-        print("[*] Load BK tree")
         with open(bk_tree_path, 'rb') as f:
             return pickle.load(f)
 
