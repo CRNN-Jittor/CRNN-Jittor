@@ -28,6 +28,13 @@ parser.add_argument("-l",
                     type=float,
                     help="learning rate [default: 5e-5]",
                     metavar="LEARNING RATE")
+parser.add_argument("-O",
+                    "--optimizer",
+                    default="RMSprop",
+                    type=str,
+                    choices=["RMSprop", "Adadelta"],
+                    help="the optimizer [default: RMSprop]",
+                    metavar="OPTIMIZER")
 parser.add_argument("--show_interval",
                     default=100,
                     type=int,
@@ -184,7 +191,14 @@ def main():
             i += int(args.reload_checkpoint.split("/")[-1].split("_")[1])
     print("i =", i)
 
-    optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
+    if args.optimizer == "RMSprop":
+        optimizer = optim.RMSprop(crnn.parameters(), lr=args.lr)
+    elif args.optimizer == "Adadelta":
+        from Adadelta import Adadelta
+        optimizer = Adadelta(crnn.parameters(), lr=args.lr)
+    else:
+        raise RuntimeError(f"Unknown optimizer: {args.optimizer}")
+
     criterion = jt.CTCLoss(reduction='sum')
 
     pbar = tqdm(desc="Trained Batches")
